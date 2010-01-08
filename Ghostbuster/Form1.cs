@@ -248,8 +248,11 @@ namespace Ghostbuster
                 Enumerate(false);
 
                 //Allowed because the number of devices should stay the same.
-                listView1.EnsureVisible(ndx);
-                listView1.Items[ndx].Selected = true;
+                if (ndx < listView1.Items.Count)
+                {
+                    listView1.EnsureVisible(ndx);
+                    listView1.Items[ndx].Selected = true;
+                }
             }
         }
 
@@ -279,8 +282,11 @@ namespace Ghostbuster
                 Enumerate(false);
 
                 //Allowed because the number of devices should stay the same.
-                listView1.EnsureVisible(ndx);
-                listView1.Items[ndx].Selected = true;
+                if (ndx < listView1.Items.Count)
+                {
+                    listView1.EnsureVisible(ndx);
+                    listView1.Items[ndx].Selected = true;
+                }
             }
         }
 
@@ -311,8 +317,11 @@ namespace Ghostbuster
                 Enumerate(false);
 
                 //Allowed because the number of devices should stay the same.
-                listView1.EnsureVisible(ndx);
-                listView1.Items[ndx].Selected = true;
+                if (ndx < listView1.Items.Count)
+                {
+                    listView1.EnsureVisible(ndx);
+                    listView1.Items[ndx].Selected = true;
+                }
             }
         }
 
@@ -343,8 +352,11 @@ namespace Ghostbuster
                 Enumerate(false);
 
                 //Allowed because the number of devices should stay the same.
-                listView1.EnsureVisible(ndx);
-                listView1.Items[ndx].Selected = true;
+                if (ndx < listView1.Items.Count)
+                {
+                    listView1.EnsureVisible(ndx);
+                    listView1.Items[ndx].Selected = true;
+                }
             }
         }
 
