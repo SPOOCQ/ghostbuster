@@ -50,6 +50,19 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                 - Changed reference from IniCollection to IniFile.
 //                 - Added Installer project
 //                 - Uploaded to CodePlex.
+//08-01-2010   veg - Added WaitCursor in Enumerate().
+//                 - Removed Path from IniFileName so it will default to '%AppData%\GhostBuster' 
+//                   with the latest IniFile component.
+//                 - Added UAC Shield to RemoveBtn (http://www.codeproject.com/KB/vista-security/UAC_Shield_for_Elevation.aspx).
+//                 - Added code to restart with Elevated security.
+//                 - Added UAC Tooltip.
+//                 - Renamed some Methods and Components.
+//                 - Ensure visibility after refresh (not removal).
+//                 - Correctly Enable and Disable Context MenuItems.
+//                 - Added Registry Access Rights to SetupDi.EnumServices(). 
+//                   This solves the Security Violations on WHS/W2K3 Server.
+//                 - Added try/catch in SetupDi.EnumServices() to prevent 
+//                   screwed up service registry entries like SBCore to crash the program.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
@@ -69,6 +82,10 @@ namespace Ghostbuster
 
     using Swiss;
     using GhostBuster;
+    using System.Security.Principal;
+    using System.Diagnostics;
+    using System.ComponentModel;
+    using System.Runtime.InteropServices;
 
     public partial class Form1 : Form
     {
@@ -87,7 +104,7 @@ namespace Ghostbuster
         /// <summary>
         /// IniFileName (Should Automatically use %AppData% when neccesary)!
         /// </summary>
-        private String IniFileName = Path.ChangeExtension(Application.ExecutablePath, ".ini");
+        private String IniFileName = Path.ChangeExtension(Path.GetFileName(Application.ExecutablePath), ".ini");
 
         /// <summary>
         /// A Handle.
@@ -98,6 +115,16 @@ namespace Ghostbuster
         /// A Structure.
         /// </summary>
         private SetupDi.SP_DEVINFO_DATA aDeviceInfoData;
+
+        /// <summary>
+        /// The ToolTip used for displaying Context Menu Info.
+        /// </summary>
+        internal ToolTip InfoToolTip = new ToolTip();
+
+        /// <summary>
+        /// The ToolTip used for displaying UAC Info.
+        /// </summary>
+        internal ToolTip UACToolTip = new ToolTip();
 
         #endregion Fields
 
@@ -134,7 +161,27 @@ namespace Ghostbuster
         /// <param name="e"></param>
         private void Form1_Load(object sender, EventArgs e)
         {
+            WindowsPrincipal pricipal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
+            bool hasAdministrativeRight = pricipal.IsInRole(WindowsBuiltInRole.Administrator);
+
+            if (!IsAdmin())
+            {
+                AddShieldToButton(RemoveBtn);
+
+                this.UACToolTip.ToolTipTitle = "UAC";
+                this.UACToolTip.SetToolTip(RemoveBtn,
+                    "\r\nFor Vista and Windows 7 Users:\r\n\r\n" +
+                    "Ghostbuster requires admin rights for device removal.\r\n" +
+                    "If you click this button GhostBuster will restart and ask for these rights.");
+            }
+
             Enumerate(false);
+
+            this.InfoToolTip.ToolTipTitle = "Help on Usage";
+            this.InfoToolTip.SetToolTip(listView1,
+                "\r\nUse the Right Click Context Menu to:\r\n\r\n" +
+            "1) Add devices or classes to the removal list (if ghosted)\r\n" +
+            "2) Removed devices or classes of the removal list.");
         }
 
         /// <summary>
@@ -142,9 +189,17 @@ namespace Ghostbuster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void button1_Click(object sender, EventArgs e)
+        private void RemoveBtn_Click(object sender, EventArgs e)
         {
-            Enumerate(true);
+            if (IsAdmin())
+            {
+                Enumerate(true);
+            }
+            else
+            {
+                //Must run with limited privileges in order to see the UAC window
+                RestartElevated(Application.ExecutablePath);
+            }
         }
 
         /// <summary>
@@ -152,11 +207,11 @@ namespace Ghostbuster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void button2_Click(object sender, EventArgs e)
+        private void RefreshBtn_Click(object sender, EventArgs e)
         {
             Enumerate(false);
         }
-                
+
         /// <summary>
         /// Disable Manual Checking of CheckBoxes.
         /// </summary>
@@ -172,12 +227,13 @@ namespace Ghostbuster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItem1_Click(object sender, EventArgs e)
+        private void AddClassMnu_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count != 0)
             {
                 String Class = listView1.SelectedItems[0].Group.ToString();
                 String Device = listView1.SelectedItems[0].Text;
+                Int32 ndx = listView1.SelectedItems[0].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -190,6 +246,10 @@ namespace Ghostbuster
                     ini.UpdateFile();
                 }
                 Enumerate(false);
+
+                //Allowed because the number of devices should stay the same.
+                listView1.EnsureVisible(ndx);
+                listView1.Items[ndx].Selected = true;
             }
         }
 
@@ -198,12 +258,13 @@ namespace Ghostbuster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        private void AddDeviceMnu_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count != 0)
             {
                 String Class = listView1.SelectedItems[0].Group.ToString();
                 String Device = listView1.SelectedItems[0].Text;
+                Int32 ndx = listView1.SelectedItems[0].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -216,20 +277,25 @@ namespace Ghostbuster
                     ini.UpdateFile();
                 }
                 Enumerate(false);
+
+                //Allowed because the number of devices should stay the same.
+                listView1.EnsureVisible(ndx);
+                listView1.Items[ndx].Selected = true;
             }
         }
 
         /// <summary>
-        /// Remove a DeviceClass from the Ghost Removal List.
+        /// Remove a Device from the Ghost Removal List.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItem3_Click(object sender, EventArgs e)
+        private void RemoveDeviceMnu_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count != 0)
             {
                 String Class = listView1.SelectedItems[0].Group.ToString();
                 String Device = listView1.SelectedItems[0].Text;
+                Int32 ndx = listView1.SelectedItems[0].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -243,6 +309,10 @@ namespace Ghostbuster
                     ini.UpdateFile();
                 }
                 Enumerate(false);
+
+                //Allowed because the number of devices should stay the same.
+                listView1.EnsureVisible(ndx);
+                listView1.Items[ndx].Selected = true;
             }
         }
 
@@ -251,12 +321,13 @@ namespace Ghostbuster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void toolStripMenuItem4_Click(object sender, EventArgs e)
+        private void RemoveClassMnu_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems.Count != 0)
             {
                 String Class = listView1.SelectedItems[0].Group.ToString();
                 String Device = listView1.SelectedItems[0].Text;
+                Int32 ndx = listView1.SelectedItems[0].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -270,6 +341,10 @@ namespace Ghostbuster
                     ini.UpdateFile();
                 }
                 Enumerate(false);
+
+                //Allowed because the number of devices should stay the same.
+                listView1.EnsureVisible(ndx);
+                listView1.Items[ndx].Selected = true;
             }
         }
 
@@ -283,168 +358,249 @@ namespace Ghostbuster
         /// <param name="RemoveGhosts">true if ghosted devices should be uninstalled</param>
         private void Enumerate(Boolean RemoveGhosts)
         {
-            listView1.BeginUpdate();
-
-            listView1.Items.Clear();
-            listView1.Groups.Clear();
-
-            //Cache all HKLM Services Key Names and DisplayNames
-            SetupDi.EnumServices();
-
-            aDevInfoSet = SetupDi.SetupDiGetClassDevs(ref SetupDi.NullGuid, 0, IntPtr.Zero, (uint)SetupDi.DIGCF.DIGCF_ALLCLASSES);
-
-            if (aDevInfoSet != (IntPtr)SetupDi.INVALID_HANDLE_VALUE)
+            using (new WaitCursor())
             {
-                aDeviceInfoData.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(aDeviceInfoData);
+                Enabled = false;
 
-                Int32 i = 0;
-
-                using (IniFile ini = new IniFile(IniFileName))
+                try
                 {
+                    listView1.BeginUpdate();
 
-                    while (SetupDi.SetupDiEnumDeviceInfo(aDevInfoSet, i, ref aDeviceInfoData))
+                    listView1.Items.Clear();
+                    listView1.Groups.Clear();
+
+                    //Cache all HKLM Services Key Names and DisplayNames
+                    SetupDi.EnumServices();
+
+                    aDevInfoSet = SetupDi.SetupDiGetClassDevs(ref SetupDi.NullGuid, 0, IntPtr.Zero, (uint)SetupDi.DIGCF.DIGCF_ALLCLASSES);
+
+                    if (aDevInfoSet != (IntPtr)SetupDi.INVALID_HANDLE_VALUE)
                     {
-                        SetupDi.DeviceInfo aDeviceInfo = new SetupDi.DeviceInfo();
+                        aDeviceInfoData.cbSize = System.Runtime.InteropServices.Marshal.SizeOf(aDeviceInfoData);
 
-                        //DeviceClass is used for grouping items...
-                        SetupDi.GetClassDescriptionFromGuid(ref aDeviceInfo, aDeviceInfoData.ClassGuid);
+                        Int32 i = 0;
 
-                        //veg: Gives Exceptions, remove and return error name...
-                        try
+                        using (IniFile ini = new IniFile(IniFileName))
                         {
-                            //TODO: Retrieving DeviceName fails.
-                            SetupDi.GetDeviceDescription(ref aDeviceInfo, aDevInfoSet, aDeviceInfoData);
-                            SetupDi.GetDeviceName(ref aDeviceInfo, aDevInfoSet, aDeviceInfoData);
 
-                            //Use Insert instead of Add...
-                            ListViewItem lvi = listView1.Items.Add(aDeviceInfo.description);
-
-                            foreach (ListViewGroup lvg in listView1.Groups)
+                            while (SetupDi.SetupDiEnumDeviceInfo(aDevInfoSet, i, ref aDeviceInfoData))
                             {
-                                if (lvg.Name == aDeviceInfo.deviceclass)
-                                {
-                                    lvg.Items.Add(lvi);
-                                    break;
-                                }
-                            }
+                                SetupDi.DeviceInfo aDeviceInfo = new SetupDi.DeviceInfo();
 
-                            if (lvi.Group == null)
-                            {
-                                //Use Insert instead of Add...
-                                foreach (ListViewGroup lvg in listView1.Groups)
+                                //DeviceClass is used for grouping items...
+                                SetupDi.GetClassDescriptionFromGuid(ref aDeviceInfo, aDeviceInfoData.ClassGuid);
+
+                                //veg: Gives Exceptions, remove and return error name...
+                                try
                                 {
-                                    if (String.Compare(lvg.Name, aDeviceInfo.deviceclass, true) >= 0)
+                                    //TODO: Retrieving DeviceName fails.
+                                    SetupDi.GetDeviceDescription(ref aDeviceInfo, aDevInfoSet, aDeviceInfoData);
+                                    SetupDi.GetDeviceName(ref aDeviceInfo, aDevInfoSet, aDeviceInfoData);
+
+                                    //Use Insert instead of Add...
+                                    ListViewItem lvi = listView1.Items.Add(aDeviceInfo.description);
+
+                                    foreach (ListViewGroup lvg in listView1.Groups)
                                     {
-                                        Int32 ndx = listView1.Groups.IndexOf(lvg);
-                                        listView1.Groups.Insert(ndx, new ListViewGroup(aDeviceInfo.deviceclass, aDeviceInfo.deviceclass));
+                                        if (lvg.Name == aDeviceInfo.deviceclass)
+                                        {
+                                            lvg.Items.Add(lvi);
+                                            break;
+                                        }
+                                    }
+
+                                    if (lvi.Group == null)
+                                    {
+                                        //Use Insert instead of Add...
+                                        foreach (ListViewGroup lvg in listView1.Groups)
+                                        {
+                                            if (String.Compare(lvg.Name, aDeviceInfo.deviceclass, true) >= 0)
+                                            {
+                                                Int32 ndx = listView1.Groups.IndexOf(lvg);
+                                                listView1.Groups.Insert(ndx, new ListViewGroup(aDeviceInfo.deviceclass, aDeviceInfo.deviceclass));
+                                                listView1.Groups[ndx].Items.Add(lvi);
+
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (lvi.Group == null)
+                                    {
+                                        Int32 ndx = listView1.Groups.Add(new ListViewGroup(aDeviceInfo.deviceclass, aDeviceInfo.deviceclass));
                                         listView1.Groups[ndx].Items.Add(lvi);
-
-                                        break;
                                     }
-                                }
-                            }
+                                    SetupDi.GetDeviceStatus(ref aDeviceInfo, aDevInfoSet, ref aDeviceInfoData);
 
-                            if (lvi.Group == null)
-                            {
-                                Int32 ndx = listView1.Groups.Add(new ListViewGroup(aDeviceInfo.deviceclass, aDeviceInfo.deviceclass));
-                                listView1.Groups[ndx].Items.Add(lvi);
-                            }
-                            SetupDi.GetDeviceStatus(ref aDeviceInfo, aDevInfoSet, ref aDeviceInfoData);
+                                    //lvi.SubItems.Add(String.Format("0x{0:x8}", aDeviceInfo.status));
+                                    //lvi.SubItems.Add(String.Format("0x{0:x8}", (Int32)aDeviceInfo.problem));
 
-                            //lvi.SubItems.Add(String.Format("0x{0:x8}", aDeviceInfo.status));
-                            //lvi.SubItems.Add(String.Format("0x{0:x8}", (Int32)aDeviceInfo.problem));
+                                    //TODO Weak Code. Pass deviceinfo to above calls as ref.
 
-                            //TODO Weak Code. Pass deviceinfo to above calls as ref.
-
-                            if (aDeviceInfo.disabled)
-                            {
-                                lvi.SubItems.Add("Disabled");
-                            }
-                            else if (aDeviceInfo.service)
-                            {
-                                lvi.SubItems.Add("Service");
-                            }
-                            else if (aDeviceInfo.ghosted)
-                            {
-                                lvi.SubItems.Add("Ghosted");
-                            }
-                            else
-                            {
-                                lvi.SubItems.Add("Ok");
-                            }
-
-                            //Remove Devices by Description
-                            StringCollection descrtoremove = ini.ReadSectionValues(DeviceKey);
-                            foreach (String desc in descrtoremove)
-                            {
-                                if (aDeviceInfo.description.Equals(desc))
-                                {
-                                    if (aDeviceInfo.ghosted && RemoveGhosts)
+                                    if (aDeviceInfo.disabled)
                                     {
-                                        if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
+                                        lvi.SubItems.Add("Disabled");
+                                    }
+                                    else if (aDeviceInfo.service)
+                                    {
+                                        lvi.SubItems.Add("Service");
+                                    }
+                                    else if (aDeviceInfo.ghosted)
+                                    {
+                                        lvi.SubItems.Add("Ghosted");
+                                    }
+                                    else
+                                    {
+                                        lvi.SubItems.Add("Ok");
+                                    }
+
+                                    //Remove Devices by Description
+                                    StringCollection descrtoremove = ini.ReadSectionValues(DeviceKey);
+                                    foreach (String desc in descrtoremove)
+                                    {
+                                        if (aDeviceInfo.description.Equals(desc))
                                         {
-                                            lvi.SubItems[1].Text = "REMOVED";
+                                            if (aDeviceInfo.ghosted && RemoveGhosts)
+                                            {
+                                                if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
+                                                {
+                                                    lvi.SubItems[1].Text = "REMOVED";
+                                                }
+                                            }
+                                            lvi.Checked = aDeviceInfo.ghosted;
+
+                                            if (aDeviceInfo.ghosted)
+                                            {
+                                                lvi.ForeColor = SystemColors.GrayText;
+                                            }
+
+                                            lvi.BackColor = SystemColors.Info;
                                         }
                                     }
-                                    lvi.Checked = aDeviceInfo.ghosted;
 
-                                    if (aDeviceInfo.ghosted)
+                                    //Remove Devices by DeviceClass
+                                    StringCollection classtoremove = ini.ReadSectionValues(ClassKey);
+                                    foreach (String name in classtoremove)
                                     {
-                                        lvi.ForeColor = SystemColors.GrayText;
-                                    }
-
-                                    lvi.BackColor = SystemColors.Info;
-                                }
-                            }
-
-                            //Remove Devices by DeviceClass
-                            StringCollection classtoremove = ini.ReadSectionValues(ClassKey);
-                            foreach (String name in classtoremove)
-                            {
-                                if (aDeviceInfo.deviceclass.Equals(name))
-                                {
-                                    if (aDeviceInfo.ghosted && RemoveGhosts)
-                                    {
-                                        if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
+                                        if (aDeviceInfo.deviceclass.Equals(name))
                                         {
-                                            lvi.SubItems[1].Text = "REMOVED";
+                                            if (aDeviceInfo.ghosted && RemoveGhosts)
+                                            {
+                                                if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
+                                                {
+                                                    lvi.SubItems[1].Text = "REMOVED";
+                                                }
+                                            }
+                                            lvi.Checked = aDeviceInfo.ghosted;
+
+                                            if (aDeviceInfo.ghosted)
+                                            {
+                                                lvi.ForeColor = SystemColors.GrayText;
+                                            }
+                                            lvi.BackColor = SystemColors.Info;
                                         }
                                     }
-                                    lvi.Checked = aDeviceInfo.ghosted;
-
-                                    if (aDeviceInfo.ghosted)
-                                    {
-                                        lvi.ForeColor = SystemColors.GrayText;
-                                    }
-                                    lvi.BackColor = SystemColors.Info;
                                 }
+                                finally
+                                {
+                                    //
+                                }
+
+                                i++;
                             }
                         }
-                        finally
-                        {
-                            //
-                        }
-
-                        i++;
                     }
                 }
+                finally
+                {
+                    Enabled = true;
+                }
+
+                listView1.Columns[0].Width = -1;
+                listView1.Columns[1].Width = -1;
+
+                listView1.EndUpdate();
             }
+        }
 
-            listView1.Columns[0].Width = -1;
-            listView1.Columns[1].Width = -1;
+        [DllImport("user32")]
+        public static extern UInt32 SendMessage
+            (IntPtr hWnd, UInt32 msg, UInt32 wParam, UInt32 lParam);
 
-            listView1.EndUpdate();
+        internal const int BCM_FIRST = 0x1600; //Normal button
+        internal const int BCM_SETSHIELD = (BCM_FIRST + 0x000C); //Elevated button
 
-            //ListViewGroupSorter fails, removes certain items.
-            //((ListViewGroupSorter)listView1).SortGroups(true);
+        public static bool IsAdmin()
+        {
+            WindowsIdentity user = WindowsIdentity.GetCurrent();
+            WindowsPrincipal principal = new WindowsPrincipal(user);
+            return principal.IsInRole(WindowsBuiltInRole.Administrator);
+        }
+
+        static internal void AddShieldToButton(Button b)
+        {
+            b.FlatStyle = FlatStyle.System;
+            SendMessage(b.Handle, BCM_SETSHIELD, 0, 0xFFFFFFFF);
         }
 
         #endregion Methods
 
-        #region Other
+        private void RestartElevated(String fileName)
+        {
+            ProcessStartInfo processInfo = new ProcessStartInfo();
+            processInfo.Verb = "runas";
+            processInfo.FileName = fileName;
+            try
+            {
+                Process.Start(processInfo);
 
-        //
+                Application.Exit();
+            }
+            catch (Win32Exception)
+            {
+                //Do nothing. Probably the user canceled the UAC window
+            }
+        }
 
-        #endregion Other
+        private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
+        {
+            if (listView1.SelectedItems.Count != 0)
+            {
+                using (IniFile ini = new IniFile(IniFileName))
+                {
+                    AddDeviceMnu.Enabled = true;
+                    RemoveDeviceMnu.Enabled = false;
+
+                    String Device = listView1.SelectedItems[0].Text;
+
+                    foreach (DictionaryEntry de in ini.ReadSection(DeviceKey))
+                    {
+                        if (de.Value.ToString() == Device)
+                        {
+                            AddDeviceMnu.Enabled = false;
+                            RemoveDeviceMnu.Enabled = true;
+
+                            break;
+                        }
+                    }
+
+                    AddClassMnu.Enabled = true;
+                    RemoveClassMnu.Enabled = false;
+
+                    foreach (DictionaryEntry de in ini.ReadSection(ClassKey))
+                    {
+                        String Class = listView1.SelectedItems[0].Group.ToString();
+
+                        if (de.Value.ToString() == Class)
+                        {
+                            AddClassMnu.Enabled = false;
+                            RemoveClassMnu.Enabled = true;
+
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 }

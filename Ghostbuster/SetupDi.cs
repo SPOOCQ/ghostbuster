@@ -31,12 +31,12 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace GhostBuster
 {
     using System;
-    using System.Text;
-    using ComTypes = System.Runtime.InteropServices.ComTypes;
-    using System.Runtime.InteropServices;
-    using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.Diagnostics;
+    using System.Runtime.InteropServices;
+    using System.Security.Permissions;
+    using System.Text;
+    using System.Windows.Forms;
     using Microsoft.Win32;
 
     public class SetupDi
@@ -438,21 +438,34 @@ namespace GhostBuster
         /// <summary>
         /// Enumerate Names of Services and their DisplayNames.
         /// </summary>
+        //[RegistryPermissionAttribute(SecurityAction.Demand, Unrestricted = true)]
         internal static void EnumServices()
         {
-            using (RegistryKey services = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services"))
+            //We need AllAccess for Enumeration.            
+            RegistryPermission f = new RegistryPermission(RegistryPermissionAccess.AllAccess, @"HKEY_LOCAL_MACHINE\System\CurrentControlSet\Services\");
+            using (RegistryKey services = Registry.LocalMachine.OpenSubKey(@"System\CurrentControlSet\Services", false))
             {
                 foreach (String name in services.GetSubKeyNames())
                 {
-                    serviceslist.Add(name.ToLower());
-                    using (RegistryKey service = services.OpenSubKey(name))
+                    try
                     {
-                        Object displayname = service.GetValue("DisplayName");
-                        if (displayname != null)
+                        serviceslist.Add(name.ToLower());
+
+                        f.AddPathList(RegistryPermissionAccess.Read, @"System\CurrentControlSet\Services\" + name);
+                        using (RegistryKey service = services.OpenSubKey(name, false))
                         {
-                            Debug.WriteLine(displayname.ToString());
-                            serviceslist.Add(displayname.ToString().ToLower());
+                            Object displayname = service.GetValue("DisplayName");
+                            if (displayname != null)
+                            {
+                                //Debug.WriteLine(displayname.ToString());
+                                serviceslist.Add(displayname.ToString().ToLower());
+                            }
                         }
+                    }
+                    catch
+                    {
+                        //SBCore fails on WHS And propably W2K3 Server too.
+                        //MessageBox.Show(name);
                     }
                 }
             }
