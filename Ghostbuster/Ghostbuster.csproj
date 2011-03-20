@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C50CAA27-DB03-4077-9816-ABAEFC2FF9B7}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -108,10 +108,10 @@
   -->
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildAction="ReBuild" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_StartDate="2010/1/8" />
+      <UserProperties BuildVersion_StartDate="2010/1/8" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_BuildAction="ReBuild" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files\Microsoft\ILMerge\ILMerge" /out:"$(TargetDir)$(TargetName)Portable.exe" "$(TargetPath)" "$(TargetDir)WaitCursor.dll" "$(TargetDir)IniFile.dll" "$(TargetDir)EncryptIt.dll"</PostBuildEvent>
+    <PostBuildEvent>"C:\Program Files (x86)\Microsoft\ILMerge\ILMerge" /out:"$(TargetDir)$(TargetName)Portable.exe" "$(TargetPath)" "$(TargetDir)WaitCursor.dll" "$(TargetDir)IniFile.dll" "$(TargetDir)EncryptIt.dll"</PostBuildEvent>
   </PropertyGroup>
 </Project>

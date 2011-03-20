@@ -63,6 +63,10 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                   This solves the Security Violations on WHS/W2K3 Server.
 //                 - Added try/catch in SetupDi.EnumServices() to prevent 
 //                   screwed up service registry entries like SBCore to crash the program.
+// 16-03-2011  veg - Made the listview multiselect.
+//                 - Removed non functional checkboxes.
+//                 - Separated Coloring Code.
+//                 - Added Statusbar.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
@@ -213,23 +217,13 @@ namespace Ghostbuster
         }
 
         /// <summary>
-        /// Disable Manual Checking of CheckBoxes.
-        /// </summary>
-        /// <param name="sender">-</param>
-        /// <param name="e">-</param>
-        private void listView1_ItemCheck(object sender, ItemCheckEventArgs e)
-        {
-            e.NewValue = e.CurrentValue;
-        }
-
-        /// <summary>
         /// Add a DeviceClass to the Ghost Removal List.
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void AddClassMnu_Click(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count != 0)
+            for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
             {
                 String Class = listView1.SelectedItems[0].Group.ToString();
                 String Device = listView1.SelectedItems[0].Text;
@@ -245,14 +239,8 @@ namespace Ghostbuster
                         ini.ReadInteger(ClassKey, "Count", 0) + 1);
                     ini.UpdateFile();
                 }
-                Enumerate(false);
 
-                //Allowed because the number of devices should stay the same.
-                if (ndx < listView1.Items.Count)
-                {
-                    listView1.EnsureVisible(ndx);
-                    listView1.Items[ndx].Selected = true;
-                }
+                ReColorDevices(true);
             }
         }
 
@@ -263,11 +251,11 @@ namespace Ghostbuster
         /// <param name="e"></param>
         private void AddDeviceMnu_Click(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count != 0)
+            for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
             {
-                String Class = listView1.SelectedItems[0].Group.ToString();
-                String Device = listView1.SelectedItems[0].Text;
-                Int32 ndx = listView1.SelectedItems[0].Index;
+                String Class = listView1.SelectedItems[i].Group.ToString();
+                String Device = listView1.SelectedItems[i].Text;
+                Int32 ndx = listView1.SelectedItems[i].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -279,15 +267,9 @@ namespace Ghostbuster
                         ini.ReadInteger(DeviceKey, "Count", 0) + 1);
                     ini.UpdateFile();
                 }
-                Enumerate(false);
-
-                //Allowed because the number of devices should stay the same.
-                if (ndx < listView1.Items.Count)
-                {
-                    listView1.EnsureVisible(ndx);
-                    listView1.Items[ndx].Selected = true;
-                }
             }
+
+            ReColorDevices(true);
         }
 
         /// <summary>
@@ -297,11 +279,12 @@ namespace Ghostbuster
         /// <param name="e"></param>
         private void RemoveDeviceMnu_Click(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count != 0)
+            //Int32 fndx = -1;
+            for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
             {
-                String Class = listView1.SelectedItems[0].Group.ToString();
-                String Device = listView1.SelectedItems[0].Text;
-                Int32 ndx = listView1.SelectedItems[0].Index;
+                String Class = listView1.SelectedItems[i].Group.ToString();
+                String Device = listView1.SelectedItems[i].Text;
+                Int32 ndx = listView1.SelectedItems[i].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -314,15 +297,9 @@ namespace Ghostbuster
                     }
                     ini.UpdateFile();
                 }
-                Enumerate(false);
-
-                //Allowed because the number of devices should stay the same.
-                if (ndx < listView1.Items.Count)
-                {
-                    listView1.EnsureVisible(ndx);
-                    listView1.Items[ndx].Selected = true;
-                }
             }
+
+            ReColorDevices(true);
         }
 
         /// <summary>
@@ -332,11 +309,11 @@ namespace Ghostbuster
         /// <param name="e"></param>
         private void RemoveClassMnu_Click(object sender, EventArgs e)
         {
-            if (listView1.SelectedItems.Count != 0)
+            for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
             {
-                String Class = listView1.SelectedItems[0].Group.ToString();
-                String Device = listView1.SelectedItems[0].Text;
-                Int32 ndx = listView1.SelectedItems[0].Index;
+                String Class = listView1.SelectedItems[i].Group.ToString();
+                String Device = listView1.SelectedItems[i].Text;
+                Int32 ndx = listView1.SelectedItems[i].Index;
 
                 using (IniFile ini = new IniFile(IniFileName))
                 {
@@ -349,14 +326,8 @@ namespace Ghostbuster
                     }
                     ini.UpdateFile();
                 }
-                Enumerate(false);
 
-                //Allowed because the number of devices should stay the same.
-                if (ndx < listView1.Items.Count)
-                {
-                    listView1.EnsureVisible(ndx);
-                    listView1.Items[ndx].Selected = true;
-                }
+                ReColorDevices(true);
             }
         }
 
@@ -373,6 +344,12 @@ namespace Ghostbuster
             using (new WaitCursor())
             {
                 Enabled = false;
+
+                toolStripProgressBar1.Value = 0;
+
+                ReColorDevices(true);
+
+                Int32 fndx = -1;
 
                 try
                 {
@@ -394,7 +371,6 @@ namespace Ghostbuster
 
                         using (IniFile ini = new IniFile(IniFileName))
                         {
-
                             while (SetupDi.SetupDiEnumDeviceInfo(aDevInfoSet, i, ref aDeviceInfoData))
                             {
                                 SetupDi.DeviceInfo aDeviceInfo = new SetupDi.DeviceInfo();
@@ -444,11 +420,6 @@ namespace Ghostbuster
                                     }
                                     SetupDi.GetDeviceStatus(ref aDeviceInfo, aDevInfoSet, ref aDeviceInfoData);
 
-                                    //lvi.SubItems.Add(String.Format("0x{0:x8}", aDeviceInfo.status));
-                                    //lvi.SubItems.Add(String.Format("0x{0:x8}", (Int32)aDeviceInfo.problem));
-
-                                    //TODO Weak Code. Pass deviceinfo to above calls as ref.
-
                                     if (aDeviceInfo.disabled)
                                     {
                                         lvi.SubItems.Add("Disabled");
@@ -468,49 +439,51 @@ namespace Ghostbuster
 
                                     //Remove Devices by Description
                                     StringCollection descrtoremove = ini.ReadSectionValues(DeviceKey);
-                                    foreach (String desc in descrtoremove)
+
+                                    if (descrtoremove.Contains(aDeviceInfo.description.Trim()))
                                     {
-                                        if (aDeviceInfo.description.Equals(desc))
+                                        if (aDeviceInfo.ghosted && RemoveGhosts)
                                         {
-                                            if (aDeviceInfo.ghosted && RemoveGhosts)
+                                            if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
                                             {
-                                                if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
+                                                lvi.SubItems[1].Text = "REMOVED";
+
+                                                fndx = lvi.Index;
+
+                                                if (toolStripProgressBar1.Value < toolStripProgressBar1.Maximum)
                                                 {
-                                                    lvi.SubItems[1].Text = "REMOVED";
+                                                    toolStripProgressBar1.Increment(1);
                                                 }
-                                            }
-                                            lvi.Checked = aDeviceInfo.ghosted;
 
-                                            if (aDeviceInfo.ghosted)
-                                            {
-                                                lvi.ForeColor = SystemColors.GrayText;
+                                                statusStrip1.Invalidate();
+                                                Application.DoEvents();
                                             }
-
-                                            lvi.BackColor = SystemColors.Info;
                                         }
+
+                                        //ReColorDevices();
+
+                                        //listView1.EnsureVisible(lvi.Index);
                                     }
 
                                     //Remove Devices by DeviceClass
                                     StringCollection classtoremove = ini.ReadSectionValues(ClassKey);
-                                    foreach (String name in classtoremove)
-                                    {
-                                        if (aDeviceInfo.deviceclass.Equals(name))
-                                        {
-                                            if (aDeviceInfo.ghosted && RemoveGhosts)
-                                            {
-                                                if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
-                                                {
-                                                    lvi.SubItems[1].Text = "REMOVED";
-                                                }
-                                            }
-                                            lvi.Checked = aDeviceInfo.ghosted;
 
-                                            if (aDeviceInfo.ghosted)
+                                    if (classtoremove.Contains(aDeviceInfo.deviceclass.Trim()))
+                                    {
+                                        if (aDeviceInfo.ghosted && RemoveGhosts)
+                                        {
+                                            if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
                                             {
-                                                lvi.ForeColor = SystemColors.GrayText;
+                                                lvi.SubItems[1].Text = "REMOVED";
+
+                                                toolStripProgressBar1.Value = toolStripProgressBar1.Value + 1;
+
+                                                statusStrip1.Invalidate();
+                                                Application.DoEvents();
                                             }
-                                            lvi.BackColor = SystemColors.Info;
                                         }
+
+                                        //listView1.EnsureVisible(lvi.Index);
                                     }
                                 }
                                 finally
@@ -519,6 +492,8 @@ namespace Ghostbuster
                                 }
 
                                 i++;
+
+                                Application.DoEvents();
                             }
                         }
                     }
@@ -532,7 +507,77 @@ namespace Ghostbuster
                 listView1.Columns[1].Width = -1;
 
                 listView1.EndUpdate();
+
+                if (fndx != -1)
+                {
+                    listView1.EnsureVisible(fndx);
+                }
+
+                ReColorDevices(false);
+
+                if (RemoveGhosts && toolStripProgressBar1.Value != 0)
+                {
+                    toolStripProgressBar1.Value = toolStripProgressBar1.Maximum;
+                }
             }
+        }
+
+        public void ReColorDevices(Boolean updatemax)
+        {
+            Int32 cnt = 0;
+            Int32 watched = 0;
+            Int32 ghosted = 0;
+            Int32 removed = 0;
+
+            using (IniFile ini = new IniFile(IniFileName))
+            {
+                //Remove Devices by Description
+                StringCollection descrtoremove = ini.ReadSectionValues(DeviceKey);
+                StringCollection classtoremove = ini.ReadSectionValues(ClassKey);
+
+                foreach (ListViewItem lvi in listView1.Items)
+                {
+                    String grp = lvi.Group.ToString().Trim();
+
+                    if (classtoremove.Contains(grp) ||
+                        descrtoremove.Contains(lvi.Text.Trim()))
+                    {
+                        if (lvi.SubItems[1].Text.Equals("Ghosted"))
+                        {
+                            lvi.BackColor = Color.LightSalmon;
+
+                            ghosted++;
+
+                            if (updatemax)
+                            {
+                                toolStripProgressBar1.Maximum = ghosted;
+                            }
+                        }
+                        else if (lvi.SubItems[1].Text.Equals("REMOVED"))
+                        {
+                            lvi.BackColor = Color.Orchid;
+                            removed++;
+                        }
+                        else
+                        {
+                            lvi.BackColor = Color.PaleGreen;
+                            watched++;
+                        }
+                    }
+                    else
+                    {
+                        lvi.BackColor = SystemColors.Window;
+                    }
+
+                    cnt++;
+                }
+
+                listView1.Update();
+            }
+
+            toolStripStatusLabel1.Text = String.Format("{0} Device(s)", cnt - removed);
+            toolStripStatusLabel2.Text = String.Format("{0} Filtered", watched + ghosted);
+            toolStripStatusLabel3.Text = String.Format("{0} to be removed", ghosted);
         }
 
         [DllImport("user32")]
