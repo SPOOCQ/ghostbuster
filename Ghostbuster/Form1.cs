@@ -67,9 +67,13 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                 - Removed non functional checkboxes.
 //                 - Separated Coloring Code.
 //                 - Added Statusbar.
+// 21-04-2011  veg - Added Partial WildCard Support (pattern isnt'stored yet and does not get removed).
+//                 - Added Match Type Column.
+//                 - Use Match Type Column for coloring too.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
+//                 - More Device Info
 //----------   ---   -------------------------------------------------------------------------------
 
 #endregion changelog
@@ -90,6 +94,7 @@ namespace Ghostbuster
     using System.Diagnostics;
     using System.ComponentModel;
     using System.Runtime.InteropServices;
+    using System.Text.RegularExpressions;
 
     public partial class Form1 : Form
     {
@@ -437,6 +442,8 @@ namespace Ghostbuster
                                         lvi.SubItems.Add("Ok");
                                     }
 
+                                    lvi.SubItems.Add("");
+
                                     //Remove Devices by Description
                                     StringCollection descrtoremove = ini.ReadSectionValues(DeviceKey);
 
@@ -539,8 +546,24 @@ namespace Ghostbuster
                 {
                     String grp = lvi.Group.ToString().Trim();
 
-                    if (classtoremove.Contains(grp) ||
-                        descrtoremove.Contains(lvi.Text.Trim()))
+                    lvi.SubItems[2].Text = "";
+
+                    if (classtoremove.Contains(grp))
+                    {
+                        lvi.SubItems[2].Text += "[Class]";
+                    }
+
+                    if (descrtoremove.Contains(lvi.Text.Trim()))
+                    {
+                        lvi.SubItems[2].Text += "[Device]";
+                    }
+
+                    if (wildcard != null && wildcard.IsMatch(lvi.Text.Trim()))
+                    {
+                        lvi.SubItems[2].Text += "[" + wildcard.Pattern + "]";
+                    }
+
+                    if (!String.IsNullOrEmpty(lvi.SubItems[2].Text))
                     {
                         if (lvi.SubItems[1].Text.Equals("Ghosted"))
                         {
@@ -654,6 +677,32 @@ namespace Ghostbuster
                             RemoveClassMnu.Enabled = true;
 
                             break;
+                        }
+                    }
+                }
+            }
+        }
+
+        private static Wildcard wildcard = null;
+
+        private void AddWildCardMnu_Click(object sender, EventArgs e)
+        {
+            String Device = String.Empty;
+
+            if (listView1.SelectedItems.Count != 0)
+            {
+                using (IniFile ini = new IniFile(IniFileName))
+                {
+                    Device = listView1.SelectedItems[0].Text;
+
+                    using (InputDialog dlg = new InputDialog("Wildcard", "Enter WildCard", Device))
+                    {
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            //TODO Try / Except.
+                            wildcard = new Wildcard(dlg.Input);
+
+                            ReColorDevices(false);
                         }
                     }
                 }
