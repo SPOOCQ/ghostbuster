@@ -34,20 +34,22 @@
             this.listView1 = new System.Windows.Forms.ListView();
             this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
             this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
+            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AddClassMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.AddDeviceMnu = new System.Windows.Forms.ToolStripMenuItem();
+            this.AddWildCardMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.RemoveClassMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.RemoveDeviceMnu = new System.Windows.Forms.ToolStripMenuItem();
+            this.removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RefreshBtn = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
-            this.AddWildCardMnu = new System.Windows.Forms.ToolStripMenuItem();
+            this.cancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -94,6 +96,11 @@
             // 
             this.columnHeader4.Text = "Status";
             // 
+            // columnHeader1
+            // 
+            this.columnHeader1.Text = "Match Type";
+            this.columnHeader1.Width = 100;
+            // 
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -102,43 +109,59 @@
             this.AddWildCardMnu,
             this.toolStripSeparator1,
             this.RemoveClassMnu,
-            this.RemoveDeviceMnu});
+            this.RemoveDeviceMnu,
+            this.removeToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(156, 142);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(168, 164);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // AddClassMnu
             // 
             this.AddClassMnu.Name = "AddClassMnu";
-            this.AddClassMnu.Size = new System.Drawing.Size(155, 22);
+            this.AddClassMnu.Size = new System.Drawing.Size(167, 22);
             this.AddClassMnu.Text = "Add Class";
             this.AddClassMnu.Click += new System.EventHandler(this.AddClassMnu_Click);
             // 
             // AddDeviceMnu
             // 
             this.AddDeviceMnu.Name = "AddDeviceMnu";
-            this.AddDeviceMnu.Size = new System.Drawing.Size(155, 22);
+            this.AddDeviceMnu.Size = new System.Drawing.Size(167, 22);
             this.AddDeviceMnu.Text = "Add Device";
             this.AddDeviceMnu.Click += new System.EventHandler(this.AddDeviceMnu_Click);
+            // 
+            // AddWildCardMnu
+            // 
+            this.AddWildCardMnu.Name = "AddWildCardMnu";
+            this.AddWildCardMnu.Size = new System.Drawing.Size(167, 22);
+            this.AddWildCardMnu.Text = "Add Wildcard";
+            this.AddWildCardMnu.Click += new System.EventHandler(this.AddWildCardMnu_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(152, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(164, 6);
             // 
             // RemoveClassMnu
             // 
             this.RemoveClassMnu.Name = "RemoveClassMnu";
-            this.RemoveClassMnu.Size = new System.Drawing.Size(155, 22);
+            this.RemoveClassMnu.Size = new System.Drawing.Size(167, 22);
             this.RemoveClassMnu.Text = "Remove Class";
             this.RemoveClassMnu.Click += new System.EventHandler(this.RemoveClassMnu_Click);
             // 
             // RemoveDeviceMnu
             // 
             this.RemoveDeviceMnu.Name = "RemoveDeviceMnu";
-            this.RemoveDeviceMnu.Size = new System.Drawing.Size(155, 22);
+            this.RemoveDeviceMnu.Size = new System.Drawing.Size(167, 22);
             this.RemoveDeviceMnu.Text = "Remove Device";
             this.RemoveDeviceMnu.Click += new System.EventHandler(this.RemoveDeviceMnu_Click);
+            // 
+            // removeToolStripMenuItem
+            // 
+            this.removeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.cancelToolStripMenuItem});
+            this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
+            this.removeToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+            this.removeToolStripMenuItem.Text = "Remove Wildcard";
             // 
             // RefreshBtn
             // 
@@ -188,17 +211,12 @@
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             // 
-            // columnHeader1
+            // cancelToolStripMenuItem
             // 
-            this.columnHeader1.Text = "Match Type";
-            this.columnHeader1.Width = 100;
-            // 
-            // AddWildCardMnu
-            // 
-            this.AddWildCardMnu.Name = "AddWildCardMnu";
-            this.AddWildCardMnu.Size = new System.Drawing.Size(155, 22);
-            this.AddWildCardMnu.Text = "Add Wildcard";
-            this.AddWildCardMnu.Click += new System.EventHandler(this.AddWildCardMnu_Click);
+            this.cancelToolStripMenuItem.Name = "cancelToolStripMenuItem";
+            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.cancelToolStripMenuItem.Text = "Cancel";
+            this.cancelToolStripMenuItem.Click += new System.EventHandler(this.RemoveWildcardToolStripMenuItem_Click);
             // 
             // Form1
             // 
@@ -242,6 +260,8 @@
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
         private System.Windows.Forms.ColumnHeader columnHeader1;
         private System.Windows.Forms.ToolStripMenuItem AddWildCardMnu;
+        private System.Windows.Forms.ToolStripMenuItem removeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem cancelToolStripMenuItem;
     }
 }
 

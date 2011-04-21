@@ -70,6 +70,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 21-04-2011  veg - Added Partial WildCard Support (pattern isnt'stored yet and does not get removed).
 //                 - Added Match Type Column.
 //                 - Use Match Type Column for coloring too.
+//                 - Add load/save to wildcards.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
@@ -95,6 +96,7 @@ namespace Ghostbuster
     using System.ComponentModel;
     using System.Runtime.InteropServices;
     using System.Text.RegularExpressions;
+    using System.Collections.Generic;
 
     public partial class Form1 : Form
     {
@@ -104,6 +106,7 @@ namespace Ghostbuster
         /// Section Name in IniFile
         /// </summary>
         const String ClassKey = "Class.RemoveIfGosted";
+        private const string WildcardKey = "Wildcards";
 
         /// <summary>
         /// Section Name in IniFile
@@ -134,6 +137,8 @@ namespace Ghostbuster
         /// The ToolTip used for displaying UAC Info.
         /// </summary>
         internal ToolTip UACToolTip = new ToolTip();
+
+        internal List<Wildcard> wildcards = new List<Wildcard>();
 
         #endregion Fields
 
@@ -538,9 +543,12 @@ namespace Ghostbuster
 
             using (IniFile ini = new IniFile(IniFileName))
             {
-                //Remove Devices by Description
+                //Remove Devices by Description.
                 StringCollection descrtoremove = ini.ReadSectionValues(DeviceKey);
                 StringCollection classtoremove = ini.ReadSectionValues(ClassKey);
+
+                //Read Wildcards.
+                LoadWildcards(ini);
 
                 foreach (ListViewItem lvi in listView1.Items)
                 {
@@ -558,9 +566,12 @@ namespace Ghostbuster
                         lvi.SubItems[2].Text += "[Device]";
                     }
 
-                    if (wildcard != null && wildcard.IsMatch(lvi.Text.Trim()))
+                    foreach (Wildcard w in wildcards)
                     {
-                        lvi.SubItems[2].Text += "[" + wildcard.Pattern + "]";
+                        if (w.IsMatch(lvi.Text.Trim()))
+                        {
+                            lvi.SubItems[2].Text += "[" + w.Pattern + "]";
+                        }
                     }
 
                     if (!String.IsNullOrEmpty(lvi.SubItems[2].Text))
@@ -601,6 +612,18 @@ namespace Ghostbuster
             toolStripStatusLabel1.Text = String.Format("{0} Device(s)", cnt - removed);
             toolStripStatusLabel2.Text = String.Format("{0} Filtered", watched + ghosted);
             toolStripStatusLabel3.Text = String.Format("{0} to be removed", ghosted);
+        }
+
+        private void LoadWildcards(IniFile ini)
+        {
+            StringDictionary sd = ini.ReadSection(WildcardKey);
+            sd.Remove("Count");
+
+            wildcards.Clear();
+            foreach (String key in sd.Keys)
+            {
+                wildcards.Add(new Wildcard(ini.ReadString(WildcardKey, key, "xyyz")));
+            }
         }
 
         [DllImport("user32")]
@@ -680,10 +703,17 @@ namespace Ghostbuster
                         }
                     }
                 }
+
+                removeToolStripMenuItem.DropDownItems.Clear();
+
+                foreach (Wildcard wildcard in wildcards)
+                {
+                    removeToolStripMenuItem.DropDownItems.Add(wildcard.Pattern.Replace("&", "&&"), null, RemoveWildcardToolStripMenuItem_Click).Tag = wildcard.Pattern;
+                }
+
+                removeToolStripMenuItem.Enabled = (removeToolStripMenuItem.DropDownItems.Count != 0);
             }
         }
-
-        private static Wildcard wildcard = null;
 
         private void AddWildCardMnu_Click(object sender, EventArgs e)
         {
@@ -700,7 +730,9 @@ namespace Ghostbuster
                         if (dlg.ShowDialog() == DialogResult.OK)
                         {
                             //TODO Try / Except.
-                            wildcard = new Wildcard(dlg.Input);
+                            wildcards.Add(new Wildcard(dlg.Input));
+
+                            SaveWildcards(ini);
 
                             ReColorDevices(false);
                         }
@@ -708,5 +740,36 @@ namespace Ghostbuster
                 }
             }
         }
+
+        private void SaveWildcards(IniFile ini)
+        {
+            ini.EraseSection(WildcardKey);
+            ini.WriteInteger(WildcardKey, "Count", wildcards.Count);
+            foreach (Wildcard w in wildcards)
+            {
+                ini.WriteString(WildcardKey,
+                    "item_" + wildcards.IndexOf(w).ToString(), w.Pattern);
+            }
+            ini.UpdateFile();
+        }
+
+        private void RemoveWildcardToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            String pattern = (String)((ToolStripMenuItem)sender).Tag;
+
+            for (Int32 i = wildcards.Count - 1; i >= 0; i--)
+            {
+                if (wildcards[i].Pattern.Equals(pattern))
+                {
+                    wildcards.RemoveAt(i);
+                }
+            }
+
+            SaveWildcards(new IniFile(null));
+            LoadWildcards(new IniFile(null));
+
+            ReColorDevices(false);
+        }
+
     }
 }
