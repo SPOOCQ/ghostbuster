@@ -59,7 +59,7 @@
             // 
             this.RemoveBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.RemoveBtn.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.RemoveBtn.Location = new System.Drawing.Point(529, 291);
+            this.RemoveBtn.Location = new System.Drawing.Point(683, 291);
             this.RemoveBtn.Name = "RemoveBtn";
             this.RemoveBtn.Size = new System.Drawing.Size(104, 23);
             this.RemoveBtn.TabIndex = 0;
@@ -83,7 +83,7 @@
             this.listView1.HideSelection = false;
             this.listView1.Location = new System.Drawing.Point(13, 12);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(620, 273);
+            this.listView1.Size = new System.Drawing.Size(774, 273);
             this.listView1.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.listView1.TabIndex = 1;
             this.listView1.UseCompatibleStateImageBehavior = false;
@@ -176,7 +176,7 @@
             // 
             this.RefreshBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.RefreshBtn.FlatStyle = System.Windows.Forms.FlatStyle.System;
-            this.RefreshBtn.Location = new System.Drawing.Point(419, 291);
+            this.RefreshBtn.Location = new System.Drawing.Point(573, 291);
             this.RefreshBtn.Name = "RefreshBtn";
             this.RefreshBtn.Size = new System.Drawing.Size(104, 23);
             this.RefreshBtn.TabIndex = 2;
@@ -193,7 +193,7 @@
             this.toolStripProgressBar1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 317);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(645, 22);
+            this.statusStrip1.Size = new System.Drawing.Size(799, 22);
             this.statusStrip1.TabIndex = 3;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -228,7 +228,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(645, 339);
+            this.ClientSize = new System.Drawing.Size(799, 339);
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.RefreshBtn);
