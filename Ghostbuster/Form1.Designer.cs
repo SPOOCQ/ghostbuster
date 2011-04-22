@@ -32,9 +32,9 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.RemoveBtn = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
-            this.columnHeader2 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader4 = new System.Windows.Forms.ColumnHeader();
-            this.columnHeader1 = new System.Windows.Forms.ColumnHeader();
+            this.DeviceCol = new System.Windows.Forms.ColumnHeader();
+            this.StatusCol = new System.Windows.Forms.ColumnHeader();
+            this.MatchTypeCol = new System.Windows.Forms.ColumnHeader();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AddClassMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.AddDeviceMnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -43,13 +43,14 @@
             this.RemoveClassMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.RemoveDeviceMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.cancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.RefreshBtn = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.cancelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.DescriptionCol = new System.Windows.Forms.ColumnHeader();
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -72,9 +73,10 @@
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.columnHeader2,
-            this.columnHeader4,
-            this.columnHeader1});
+            this.DeviceCol,
+            this.StatusCol,
+            this.MatchTypeCol,
+            this.DescriptionCol});
             this.listView1.ContextMenuStrip = this.contextMenuStrip1;
             this.listView1.ForeColor = System.Drawing.SystemColors.WindowText;
             this.listView1.FullRowSelect = true;
@@ -87,19 +89,19 @@
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
             // 
-            // columnHeader2
+            // DeviceCol
             // 
-            this.columnHeader2.Text = "Device";
-            this.columnHeader2.Width = 200;
+            this.DeviceCol.Text = "Device";
+            this.DeviceCol.Width = 200;
             // 
-            // columnHeader4
+            // StatusCol
             // 
-            this.columnHeader4.Text = "Status";
+            this.StatusCol.Text = "Status";
             // 
-            // columnHeader1
+            // MatchTypeCol
             // 
-            this.columnHeader1.Text = "Match Type";
-            this.columnHeader1.Width = 100;
+            this.MatchTypeCol.Text = "Match Type";
+            this.MatchTypeCol.Width = 100;
             // 
             // contextMenuStrip1
             // 
@@ -112,7 +114,7 @@
             this.RemoveDeviceMnu,
             this.removeToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(168, 164);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(168, 142);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // AddClassMnu
@@ -163,6 +165,13 @@
             this.removeToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
             this.removeToolStripMenuItem.Text = "Remove Wildcard";
             // 
+            // cancelToolStripMenuItem
+            // 
+            this.cancelToolStripMenuItem.Name = "cancelToolStripMenuItem";
+            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(110, 22);
+            this.cancelToolStripMenuItem.Text = "Cancel";
+            this.cancelToolStripMenuItem.Click += new System.EventHandler(this.RemoveWildcardToolStripMenuItem_Click);
+            // 
             // RefreshBtn
             // 
             this.RefreshBtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
@@ -211,12 +220,9 @@
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             // 
-            // cancelToolStripMenuItem
+            // DescriptionCol
             // 
-            this.cancelToolStripMenuItem.Name = "cancelToolStripMenuItem";
-            this.cancelToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.cancelToolStripMenuItem.Text = "Cancel";
-            this.cancelToolStripMenuItem.Click += new System.EventHandler(this.RemoveWildcardToolStripMenuItem_Click);
+            this.DescriptionCol.Text = "Description";
             // 
             // Form1
             // 
@@ -244,8 +250,8 @@
 
         private System.Windows.Forms.Button RemoveBtn;
         private System.Windows.Forms.ListView listView1;
-        private System.Windows.Forms.ColumnHeader columnHeader2;
-        private System.Windows.Forms.ColumnHeader columnHeader4;
+        private System.Windows.Forms.ColumnHeader DeviceCol;
+        private System.Windows.Forms.ColumnHeader StatusCol;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem AddClassMnu;
         private System.Windows.Forms.ToolStripMenuItem AddDeviceMnu;
@@ -258,10 +264,11 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel2;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel3;
         private System.Windows.Forms.ToolStripProgressBar toolStripProgressBar1;
-        private System.Windows.Forms.ColumnHeader columnHeader1;
+        private System.Windows.Forms.ColumnHeader MatchTypeCol;
         private System.Windows.Forms.ToolStripMenuItem AddWildCardMnu;
         private System.Windows.Forms.ToolStripMenuItem removeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cancelToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader DescriptionCol;
     }
 }
 
