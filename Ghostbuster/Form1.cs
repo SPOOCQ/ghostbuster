@@ -640,6 +640,30 @@ namespace Ghostbuster
 
                                         //listView1.EnsureVisible(lvi.Index);
                                     }
+
+                                    //Remove Devices by Wildcard
+                                    StringCollection wildcardtoremove = ini.ReadSectionValues(WildcardKey);
+
+
+
+                                    foreach (Wildcard w in wildcards)
+                                    {
+                                        if (w.IsMatch(aDeviceInfo.description.Trim()))
+                                        {
+                                            if (aDeviceInfo.ghosted && RemoveGhosts)
+                                            {
+                                                if (SetupDi.SetupDiRemoveDevice(aDevInfoSet, ref aDeviceInfoData))
+                                                {
+                                                    lvi.SubItems[(int)LVC.StatusCol].Text = "REMOVED";
+
+                                                    toolStripProgressBar1.Value = toolStripProgressBar1.Value + 1;
+
+                                                    statusStrip1.Invalidate();
+                                                    Application.DoEvents();
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
                                 finally
                                 {
