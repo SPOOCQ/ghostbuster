@@ -154,7 +154,7 @@ namespace GhostBuster
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        internal struct SP_DEVINFO_DATA
+        public struct SP_DEVINFO_DATA
         {
             public Int32 cbSize;
             public Guid ClassGuid;
@@ -210,9 +210,6 @@ namespace GhostBuster
 
         [DllImport(AdvApi32ModuleName, CharSet = CharSet.Ansi, SetLastError = true, ExactSpelling = true)]
         public static extern int RegCloseKey(IntPtr hKey);
-
-        //[DllImport(Kernel32ModuleName)]
-        //public static extern Int32 GetLastError();
 
         /// <summary>
         /// Structure to store the state of a device.

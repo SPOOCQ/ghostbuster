@@ -1,6 +1,6 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ghostbuster", "Ghostbuster\Ghostbuster.csproj", "{C50CAA27-DB03-4077-9816-ABAEFC2FF9B7}"
 EndProject
 Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "GhostBusterSetup", "GhostBusterSetup\GhostBusterSetup.vdproj", "{8DB7C606-3464-4443-A802-6EAA0549B104}"
@@ -9,14 +9,14 @@ Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 3
 		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
-		SccTeamFoundationServer = https://tfs04.codeplex.com/
-		SccLocalPath0 = .
-		SccProjectUniqueName1 = Ghostbuster\\Ghostbuster.csproj
-		SccProjectName1 = Ghostbuster
-		SccLocalPath1 = Ghostbuster
-		SccProjectUniqueName2 = GhostBusterSetup\\GhostBusterSetup.vdproj
-		SccProjectName2 = GhostBusterSetup
-		SccLocalPath2 = GhostBusterSetup
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs04
+		SccProjectUniqueName0 = Ghostbuster\\Ghostbuster.csproj
+		SccProjectName0 = Ghostbuster
+		SccLocalPath0 = Ghostbuster
+		SccProjectUniqueName1 = GhostBusterSetup\\GhostBusterSetup.vdproj
+		SccProjectName1 = GhostBusterSetup
+		SccLocalPath1 = GhostBusterSetup
+		SccLocalPath2 = .
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
