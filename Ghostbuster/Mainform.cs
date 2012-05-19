@@ -74,6 +74,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 18-05-2012      - Improved counting.
 //                 - Changed color of ghosted but unfiltered devices.
 //                 - Changed HwEntries into an ObservableCollection.
+// 19-05-2012      - Added Properties Form.
+//                 - Added Properties MenuItem.
+//                 - Uploaded to CodePlex.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
