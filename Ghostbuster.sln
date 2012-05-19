@@ -33,12 +33,4 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		BuildVersion_UpdateAssemblyVersion = True
-		BuildVersion_UseGlobalSettings = True
-		BuildVersion_UpdateFileVersion = True
-		BuildVersion_StartDate = 2010/1/8
-		BuildVersion_BuildVersioningStyle = None.None.Increment.None
-		BuildVersion_BuildAction = ReBuild
-	EndGlobalSection
 EndGlobal

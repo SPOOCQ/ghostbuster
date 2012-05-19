@@ -1,4 +1,4 @@
-﻿#region License
+﻿#region Header
 
 /*
 Copyright (c) 2009, G.W. van der Vegt
@@ -27,10 +27,6 @@ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT
 STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF
 THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#endregion License
-
-#region Header
-
 //Application Icon from: http://www.iconspedia.com/icon/scream-473-.html
 //By: Jojo Mendoza
 //License: Creative Commons Attribution-Noncommercial-No Derivative Works 3.0 License.
@@ -39,6 +35,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //By:                G.W. van der Vegt (wvd_vegt@knoware.nl)
 //Url:               http://ghostbuster.codeplex.com
 //Depends:           IniFile
+//                   SystemRestore
 //License:           New BSD License
 //----------   ---   -------------------------------------------------------------------------------
 //dd-mm-yyyy - who - description
@@ -70,6 +67,13 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                 - Added Match Type Column.
 //                 - Use Match Type Column for coloring too.
 //                 - Add load/save to wildcards.
+// 16-05-2012      - Added slightly modified System Restore Code to create a checkpoint.
+//                 - Switched to simpler WMI based solution (CoInitializeEx and CoInitializeSecurity) failed.
+// 17-05-2012      - Moved WmiRestorePoint into this class.
+//                 - Removed test code from program.cs
+// 18-05-2012      - Improved counting.
+//                 - Changed color of ghosted but unfiltered devices.
+//                 - Changed HwEntries into an ObservableCollection.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
@@ -88,6 +92,9 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                   "DriverVersion"="3.3.11.152"
 //                   "MatchingDeviceId"="usb\\vid_067b&pid_2303"
 //                   "DriverDesc"="Prolific USB-to-Serial Comm Port"
+//
+//TODO             - Respond to DeviceChanges?
+//                 - Hide all non filtered items.
 //----------   ---   -------------------------------------------------------------------------------
 
 #endregion Header
@@ -100,8 +107,12 @@ namespace Ghostbuster
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Drawing;
+    using System.IO;
+    using System.Management;
     using System.Runtime.InteropServices;
     using System.Security.Principal;
+    using System.Text;
+    using System.Threading;
     using System.Windows.Forms;
 
     using GhostBuster;
@@ -109,8 +120,8 @@ namespace Ghostbuster
     using Swiss;
 
     using HDEVINFO = System.IntPtr;
-    using System.IO;
-    using System.Text;
+    using System.Collections.Generic;
+    using System.Reflection;
 
     public partial class Mainform : Form
     {
@@ -118,6 +129,12 @@ namespace Ghostbuster
 
         internal const int BCM_FIRST = 0x1600; //Normal button
         internal const int BCM_SETSHIELD = (BCM_FIRST + 0x000C); //Elevated button
+        internal const int S_OK = 0;
+
+        /// <summary>
+        /// Name of the Wmi ReturnValue Property.
+        /// </summary>
+        public const String ReturnValue = "ReturnValue";
 
         /// <summary>
         /// The ToolTip used for displaying Context Menu Info.
@@ -151,12 +168,90 @@ namespace Ghostbuster
 
         #region Enumerations
 
+        /// <summary>
+        /// SystemRestore EventType
+        /// </summary>
+        public enum EventType
+        {
+            /// <summary>
+            /// Start of operation.
+            /// </summary>
+            BeginSystemChange = 100,
+
+            /// <summary>
+            /// End of operation.
+            /// </summary>
+            EndSystemChange = 101,
+
+            /// <summary>
+            // Windows XP only - used to prevent the restore points intertwined.
+            /// </summary>
+            BeginNestedSystemChange = 102,
+
+            /// <summary>
+            // Windows XP only - used to prevent the restore points intertwined.
+            /// </summary>
+            EndNestedSystemChange = 103
+        }
+
         public enum LVC
         {
             DeviceCol = 0,
+            ManuCol,
             StatusCol,
             MatchTypeCol,
             DescriptionCol
+        }
+
+        /// <summary>
+        /// Type of restorations.
+        /// </summary> 
+        public enum RestoreType
+        {
+            /// <summary>
+            /// Installing a new application.
+            /// </summary>
+            ApplicationInstall = 0,
+
+            /// <summary>
+            /// An application has been uninstalled.
+            /// </summary>
+            ApplicationUninstall = 1,
+
+            /// <summary>
+            /// System Restore.
+            /// </summary>
+            Restore = 6,
+
+            /// <summary>
+            /// Checkpoint.
+            /// </summary>
+            Checkpoint = 7,
+
+            /// <summary>
+            /// Device driver has been installed.
+            /// </summary>
+            DeviceDriverInstall = 10,
+
+            /// <summary>
+            /// Program used for 1st time.
+            /// </summary>
+            FirstRun = 11,
+
+            /// <summary>
+            /// An application has had features added or removed.
+            /// </summary>
+            ModifySettings = 12,
+
+            /// <summary>
+            /// An application needs to delete the restore point it created.
+            /// </summary>
+            CancelledOperation = 13,
+
+            /// <summary>
+            /// Restoring a backup.
+            /// </summary>
+            BackupRecovery = 14
         }
 
         #endregion Enumerations
@@ -166,12 +261,43 @@ namespace Ghostbuster
         [DllImport("user32")]
         public static extern UInt32 SendMessage(IntPtr hWnd, UInt32 msg, UInt32 wParam, UInt32 lParam);
 
+        /// <summary>
+        /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa378847(v=vs.85).aspx
+        /// </summary>
+        /// <param name="description"></param>
+        /// <param name="rt">RestoreType</param>
+        /// <param name="et">EventType</param>
+        /// <returns></returns>
+        public static ManagementBaseObject WmiRestorePoint(String description, RestoreType rt = RestoreType.Checkpoint, EventType et = EventType.BeginSystemChange)
+        {
+            ManagementScope scope = new ManagementScope(@"\\.\root\DEFAULT");
+            ManagementPath path = new ManagementPath("SystemRestore");
+            ObjectGetOptions options = new ObjectGetOptions();
+            ManagementClass process = new ManagementClass(scope, path, options);
+
+            // Obtain in-parameters for the method
+            ManagementBaseObject inParams =
+                process.GetMethodParameters("CreateRestorePoint");
+
+            // Add the input parameters.
+            inParams["Description"] = description;
+            inParams["EventType"] = (int)et;
+            inParams["RestorePointType"] = (int)rt;
+
+            // Execute the method and obtain the return values.
+            ManagementBaseObject outParams =
+                       process.InvokeMethod("CreateRestorePoint", inParams, null);
+
+            return outParams;
+        }
+
         public void ReColorDevices(Boolean updatemax)
         {
             Int32 cnt = 0;
             Int32 watched = 0;
             Int32 ghosted = 0;
             Int32 removed = 0;
+            Int32 remove = 0;
 
             foreach (ListViewItem lvi in listView1.Items)
             {
@@ -197,11 +323,20 @@ namespace Ghostbuster
                     }
                 }
 
-                if (!String.IsNullOrEmpty(lvi.SubItems[2].Text))
+                if (!String.IsNullOrEmpty(lvi.SubItems[(int)LVC.StatusCol].Text))
                 {
-                    if (lvi.SubItems[(int)LVC.StatusCol].Text.Equals("Ghosted"))
+                    //Clount Devices to be Removed
+                    if (lvi.SubItems[(int)LVC.StatusCol].Text.Equals("Ghosted") &&
+                       !String.IsNullOrEmpty(lvi.SubItems[(int)LVC.MatchTypeCol].Text))
                     {
                         lvi.BackColor = Color.LightSalmon;
+                        remove++;
+                    }
+                    //Count Ghosted Devices that are not removed.
+                    else if (lvi.SubItems[(int)LVC.StatusCol].Text.Equals("Ghosted") &&
+                    String.IsNullOrEmpty(lvi.SubItems[(int)LVC.MatchTypeCol].Text))
+                    {
+                        lvi.BackColor = Color.Bisque;
 
                         ghosted++;
 
@@ -210,15 +345,24 @@ namespace Ghostbuster
                             toolStripProgressBar1.Maximum = ghosted;
                         }
                     }
+                    //Count Removed Devices
                     else if (lvi.SubItems[(int)LVC.StatusCol].Text.Equals("REMOVED"))
                     {
                         lvi.BackColor = Color.Orchid;
                         removed++;
                     }
-                    else
+                    //Count Filtered Devices
+                    else if (!String.IsNullOrEmpty(lvi.SubItems[(int)LVC.MatchTypeCol].Text))
                     {
                         lvi.BackColor = Color.PaleGreen;
+
                         watched++;
+                    }
+                    //Present Devices.
+                    else if (lvi.SubItems[(int)LVC.StatusCol].Text.Equals("Ok") ||
+                        lvi.SubItems[(int)LVC.StatusCol].Text.Equals("Service"))
+                    {
+                        lvi.BackColor = SystemColors.Window;
                     }
                 }
                 else
@@ -232,8 +376,9 @@ namespace Ghostbuster
             listView1.Update();
 
             toolStripStatusLabel1.Text = String.Format("{0} Device(s)", cnt - removed);
-            toolStripStatusLabel2.Text = String.Format("{0} Filtered", watched + ghosted);
-            toolStripStatusLabel3.Text = String.Format("{0} to be removed", ghosted);
+            toolStripStatusLabel2.Text = String.Format("{0} Filtered", watched /*+ ghosted + remove*/);
+            toolStripStatusLabel3.Text = String.Format("{0} Ghosted", ghosted + remove);
+            toolStripStatusLabel4.Text = String.Format("{0} to be removed", remove);
         }
 
         internal static void AddShieldToButton(Button b)
@@ -295,6 +440,18 @@ namespace Ghostbuster
             }
         }
 
+        private void chkSysRestore_CheckedChanged(object sender, EventArgs e)
+        {
+            using (IniFile ini = new IniFile(Buster.IniFileName))
+            {
+                ini.WriteBool("Setup", "CreateCheckPoint", chkSysRestore.Checked);
+                if (ini.Dirty)
+                {
+                    ini.UpdateFile();
+                }
+            }
+        }
+
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
             if (listView1.SelectedItems.Count != 0)
@@ -349,10 +506,15 @@ namespace Ghostbuster
         /// Enumerate all devices and optionally uninstall ghosted ones.
         /// </summary>
         /// <param name="RemoveGhosts">true if ghosted devices should be uninstalled</param>
-        private void Enumerate(Boolean RemoveGhosts)
+        private void Enumerate(Boolean RemoveGhosts, Boolean HideUnfiltered = false)
         {
             using (new WaitCursor())
             {
+                toolStripStatusLabel1.Text = String.Empty;
+                toolStripStatusLabel2.Text = String.Empty;
+                toolStripStatusLabel3.Text = String.Empty;
+                toolStripStatusLabel4.Text = String.Empty;
+
                 //! Add a Overlay here?
                 Buster.Enumerate();
 
@@ -377,12 +539,16 @@ namespace Ghostbuster
                     {
                         foreach (HwEntry he in Buster.HwEntries)
                         {
-
                             //Use Insert instead of Add...
                             ListViewItem lvi = listView1.Items.Add(he.Description);
                             for (int j = 1; j < listView1.Columns.Count; j++)
                             {
                                 lvi.SubItems.Add("");
+                            }
+
+                            if (he.Properties.ContainsKey(SPDRP.MFG.ToString()))
+                            {
+                                lvi.SubItems[(int)LVC.ManuCol].Text = he.Properties[SPDRP.MFG.ToString()];
                             }
 
                             foreach (ListViewGroup lvg in listView1.Groups)
@@ -418,6 +584,8 @@ namespace Ghostbuster
 
                             lvi.SubItems[(int)LVC.StatusCol].Text = he.DeviceStatus;
                             lvi.SubItems[(int)LVC.DescriptionCol].Text = he.FriendlyName;
+
+                            lvi.Tag = he;
 
                             if (RemoveGhosts && he.RemoveDevice_IF_Ghosted_AND_Marked())
                             {
@@ -457,11 +625,62 @@ namespace Ghostbuster
 
                 ReColorDevices(false);
 
+                //Remove all devices with just Ok/Service and No Match
+                if (HideUnfiltered)
+                {
+                    for (Int32 i = listView1.Items.Count - 1; i >= 0; i--)
+                    {
+                        if ((listView1.Items[i].SubItems[(int)LVC.StatusCol].Text.Equals("Ok") ||
+                            listView1.Items[i].SubItems[(int)LVC.StatusCol].Text.Equals("Service")) &&
+                            String.IsNullOrEmpty(listView1.Items[i].SubItems[(int)LVC.MatchTypeCol].Text))
+                        {
+                            listView1.Items.RemoveAt(i);
+                        }
+                    }
+                }
+
+                ReColorDevices(false);
+
                 if (RemoveGhosts && toolStripProgressBar1.Value != 0)
                 {
                     toolStripProgressBar1.Value = toolStripProgressBar1.Maximum;
                 }
             }
+        }
+
+        /// <summary>
+        /// Verifies that the OS can do system restores.
+        /// </summary>
+        /// <returns>True if OS is either ME,XP,Vista,7</returns>
+        public static bool SysRestoreAvailable()
+        {
+            int majorVersion = Environment.OSVersion.Version.Major;
+            int minorVersion = Environment.OSVersion.Version.Minor;
+
+            StringBuilder sbPath = new StringBuilder(260);
+
+            // See if DLL exists
+            if (SearchPath(null, "srclient.dll", null, 260, sbPath, null) != 0)
+                return true;
+
+            // Windows ME
+            if (majorVersion == 4 && minorVersion == 90)
+                return true;
+
+            // Windows XP
+            if (majorVersion == 5 && minorVersion == 1)
+                return true;
+
+            // Windows Vista
+            if (majorVersion == 6 && minorVersion == 0)
+                return true;
+
+            // Windows 7
+            if (majorVersion == 6 && minorVersion == 1)
+                return true;
+
+            // All others : Win 95, 98, 2000, Server
+            return false;
         }
 
         /// <summary>
@@ -474,6 +693,22 @@ namespace Ghostbuster
             WindowsPrincipal pricipal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
             bool hasAdministrativeRight = pricipal.IsInRole(WindowsBuiltInRole.Administrator);
 
+            chkSysRestore.Enabled = SysRestoreAvailable();
+
+            using (IniFile ini = new IniFile(Buster.IniFileName))
+            {
+                chkSysRestore.Checked = ini.ReadBool("Setup", "CreateCheckPoint", chkSysRestore.Checked);
+            }
+
+            if (chkSysRestore.Checked)
+            {
+                Console.WriteLine("System Restore Available");
+            }
+            else
+            {
+                Console.WriteLine("System Restore Unavailable");
+            }
+
             if (!Buster.IsAdmin())
             {
                 AddShieldToButton(RemoveBtn);
@@ -485,6 +720,7 @@ namespace Ghostbuster
                     "If you click this button GhostBuster will restart and ask for these rights.");
             }
 
+            Buster.HwEntries.CollectionChanged += new NotifyCollectionChangedEventHandler(HwEntries_CollectionChanged);
             Enumerate(false);
 
             this.InfoToolTip.ToolTipTitle = "Help on Usage";
@@ -492,6 +728,12 @@ namespace Ghostbuster
                 "\r\nUse the Right Click Context Menu to:\r\n\r\n" +
             "1) Add devices or classes to the removal list (if ghosted)\r\n" +
             "2) Removed devices or classes of the removal list.");
+        }
+
+        void HwEntries_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            toolStripStatusLabel1.Text = String.Format("{0} Device(s)", Buster.HwEntries.Count);
+            statusStrip1.Update();
         }
 
         /// <summary>
@@ -513,7 +755,45 @@ namespace Ghostbuster
         {
             if (Buster.IsAdmin())
             {
+                if (chkSysRestore.Checked)
+                {
+                    try
+                    {
+                        label1.Text = "Creating a System Restore Point...";
+                        label1.Update();
+
+                        ManagementBaseObject result = WmiRestorePoint("GhostBuster Restore Point", RestoreType.ApplicationInstall, EventType.BeginSystemChange);
+
+                        if (Int32.Parse(result[ReturnValue].ToString()) == S_OK)
+                        {
+                            label1.Text = "System Restore Point created successfully.";
+                        }
+                        else
+                        {
+                            label1.Text = "Creation of System Restore Point failed!";
+                        }
+                        label1.Update();
+
+                        Thread.Sleep(1000);
+                    }
+                    catch (ManagementException err)
+                    {
+                        MessageBox.Show("An error occurred while trying to execute the WMI method: " + err.Message);
+                    }
+                }
+
+                label1.Text = "Removing devices...";
+                label1.Update();
+
                 Enumerate(true);
+
+                label1.Text = "Devices removed.";
+                label1.Update();
+
+                Thread.Sleep(1000);
+
+                label1.Text = String.Empty;
+                label1.Update();
             }
             else
             {
@@ -577,6 +857,45 @@ namespace Ghostbuster
             catch (Win32Exception)
             {
                 //Do nothing. Probably the user canceled the UAC window
+            }
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        internal static extern uint SearchPath(string lpPath,
+            string lpFileName,
+            string lpExtension,
+            int nBufferLength,
+            [MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpBuffer,
+            string lpFilePart);
+
+        private void hideUnfilteredDevicesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Enumerate(false, ((ToolStripMenuItem)(sender)).CheckState == CheckState.Checked);
+        }
+
+        private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems != null &&
+                listView1.SelectedItems.Count == 1 &&
+               listView1.SelectedItems[0].Tag != null)
+            {
+                Debug.WriteLine("[Properties]");
+                HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
+
+                PropertyForm pf = new PropertyForm();
+
+                pf.textBox1.Clear();
+
+                foreach (KeyValuePair<String, String> kvp in he.Properties)
+                {
+                    String descr = EnumExtensions.GetDescription<SPDRP>((SPDRP)Enum.Parse(typeof(SPDRP), kvp.Key));
+                    if (!String.IsNullOrEmpty(descr))
+                    {
+                        pf.textBox1.Text += String.Format("{0,32} =  {1}\r\n", descr, kvp.Value);
+                    }
+                }
+
+                pf.ShowDialog();
             }
         }
 

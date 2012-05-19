@@ -35,32 +35,34 @@ using System.IO;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.Win32.TaskScheduler;
+using System.Threading;
+using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace Ghostbuster
 {
     static class Program
     {
-        private static readonly String S_SYNTAX = String.Format("Syntax: {0} [Option [ConfFile]]\r\n" +
-                                                                "\r\n" +
-                                                                "Options: \r\n" +
-                                                                "\r\n" +
-                                                                "  /Help\t\t; This Message\r\n" +
-                                                                "  /Register ConfFile\t; * Registers a Scheduler Task\r\n" +
-                                                                "  /UnRegister\t; * Unregisters a Scheduler Task\r\n" +
-                                                                "  /NoGui ConfFile\t; * Removes Ghosted Devices specified in ConfFile\r\n" +
-                                                                "\r\n" +
-                                                                "Examples: \r\n" +
-                                                                "\r\n" +
-                                                                "  {0}\r\n" +
-                                                                "  {0} /Help\r\n" +
-                                                                "  {0} /nogui %appdata%\\{0}\\{0}.ini\r\n" +
-                                                                "  {0} /register %appdata%\\{0}\\{0}.ini\r\n" +
-                                                                "  {0} /unregister\r\n" +
-                                                                "\r\n" +
-                                                                "The options marked with a * need an evelvated command prompt.\r\n", Buster.S_TITLE);
-
-        private static readonly String S_SCHEDULE = "You need to have Administrative Priviliges to register or unregister a Scheduler Task.";
         private static readonly String S_CONSOLE = "You need to have Administrative Priviliges to run in Console mode.";
+        private static readonly String S_SCHEDULE = "You need to have Administrative Priviliges to register or unregister a Scheduler Task.";
+        private static readonly String S_SYNTAX = String.Format("Syntax: {0} [Option [ConfFile]]\r\n" +
+                                                               "\r\n" +
+                                                               "Options: \r\n" +
+                                                               "\r\n" +
+                                                               "  /Help\t\t; This Message\r\n" +
+                                                               "  /Register ConfFile\t; * Registers a Scheduler Task\r\n" +
+                                                               "  /UnRegister\t; * Unregisters a Scheduler Task\r\n" +
+                                                               "  /NoGui ConfFile\t; * Removes Ghosted Devices specified in ConfFile\r\n" +
+                                                               "\r\n" +
+                                                               "Examples: \r\n" +
+                                                               "\r\n" +
+                                                               "  {0}\r\n" +
+                                                               "  {0} /Help\r\n" +
+                                                               "  {0} /nogui %appdata%\\{0}\\{0}.ini\r\n" +
+                                                               "  {0} /register %appdata%\\{0}\\{0}.ini\r\n" +
+                                                               "  {0} /unregister\r\n" +
+                                                               "\r\n" +
+                                                               "The options marked with a * need an evelvated command prompt.\r\n", Buster.S_TITLE);
 
         /// <summary>
         /// The main entry point for the application.

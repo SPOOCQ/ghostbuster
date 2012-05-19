@@ -21,37 +21,43 @@
         }
         "Entry"
         {
+        "MsmKey" = "8:_634C6AC1F889B709D4296CF4F438F245"
+        "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_747978F3097ED9EAF1C719BB8B709B40"
+        "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_747978F3097ED9EAF1C719BB8B709B40"
+        "OwnerKey" = "8:_A919FD5A8028A0AD0AFD2667178FC236"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_853C654815374DF2331A6A8E50D31003"
+        "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_8DCBC3259C554FCC9524A2EA5DFA4CA3"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_8ECB978293EB10EBCBB88E758016B1C9"
+        "MsmKey" = "8:_A919FD5A8028A0AD0AFD2667178FC236"
         "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B9E2752408ADC7D6926A5F233AED9FE7"
-        "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_BF0F609B0537DB65B2AFC0B24152FA8E"
-        "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_BF0F609B0537DB65B2AFC0B24152FA8E"
-        "OwnerKey" = "8:_D32ABA30756FF3F39DCAFE91CC4B6AFC"
-        "MsmSig" = "8:_UNDEFINED"
-        }
-        "Entry"
-        {
-        "MsmKey" = "8:_D32ABA30756FF3F39DCAFE91CC4B6AFC"
+        "MsmKey" = "8:_DA9157FDF7E788D908010ACEEC03A421"
         "OwnerKey" = "8:_42EDF43F38674E00A3DA43313A92AA3D"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -70,25 +76,31 @@
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_8ECB978293EB10EBCBB88E758016B1C9"
+        "OwnerKey" = "8:_853C654815374DF2331A6A8E50D31003"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_B9E2752408ADC7D6926A5F233AED9FE7"
+        "OwnerKey" = "8:_DA9157FDF7E788D908010ACEEC03A421"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_D32ABA30756FF3F39DCAFE91CC4B6AFC"
+        "OwnerKey" = "8:_634C6AC1F889B709D4296CF4F438F245"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
         "MsmKey" = "8:_UNDEFINED"
-        "OwnerKey" = "8:_BF0F609B0537DB65B2AFC0B24152FA8E"
+        "OwnerKey" = "8:_A919FD5A8028A0AD0AFD2667178FC236"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_UNDEFINED"
+        "OwnerKey" = "8:_747978F3097ED9EAF1C719BB8B709B40"
         "MsmSig" = "8:_UNDEFINED"
         }
     }
@@ -118,10 +130,10 @@
             "ComponentsUrl" = "8:"
                 "Items"
                 {
-                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Net.Framework.3.5"
+                    "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Net.Framework.3.5.SP1"
                     {
-                    "Name" = "8:.NET Framework 3.5"
-                    "ProductCode" = "8:Microsoft.Net.Framework.3.5"
+                    "Name" = "8:.NET Framework 3.5 SP1"
+                    "ProductCode" = "8:Microsoft.Net.Framework.3.5.SP1"
                     }
                     "{EDC2488A-8267-493A-A98E-7D9C3B36CDF3}:Microsoft.Windows.Installer.3.1"
                     {
@@ -188,7 +200,7 @@
                 {
                 "Name" = "8:.NET Framework"
                 "Message" = "8:[VSDNETMSG]"
-                "FrameworkVersion" = "8:3.5.21022"
+                "FrameworkVersion" = "8:.NETFramework,Version=v3.5"
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=76617"
                 }
@@ -196,65 +208,14 @@
         }
         "File"
         {
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8DCBC3259C554FCC9524A2EA5DFA4CA3"
-            {
-            "SourcePath" = "8:Uninstall GhostBuster.txt"
-            "TargetName" = "8:Uninstall GhostBuster.lnk"
-            "Tag" = "8:"
-            "Folder" = "8:_E7C75B28E3734E5B835B607BF185C478"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:FALSE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_8ECB978293EB10EBCBB88E758016B1C9"
-            {
-            "AssemblyRegister" = "3:1"
-            "AssemblyIsInGAC" = "11:FALSE"
-            "AssemblyAsmDisplayName" = "8:WaitCursor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
-                "ScatterAssemblies"
-                {
-                    "_8ECB978293EB10EBCBB88E758016B1C9"
-                    {
-                    "Name" = "8:WaitCursor.dll"
-                    "Attributes" = "3:512"
-                    }
-                }
-            "SourcePath" = "8:WaitCursor.dll"
-            "TargetName" = "8:"
-            "Tag" = "8:"
-            "Folder" = "8:_8D92A0668CE741B78CD23854F07C937C"
-            "Condition" = "8:"
-            "Transitive" = "11:FALSE"
-            "Vital" = "11:TRUE"
-            "ReadOnly" = "11:FALSE"
-            "Hidden" = "11:FALSE"
-            "System" = "11:FALSE"
-            "Permanent" = "11:FALSE"
-            "SharedLegacy" = "11:FALSE"
-            "PackageAs" = "3:1"
-            "Register" = "3:1"
-            "Exclude" = "11:FALSE"
-            "IsDependency" = "11:TRUE"
-            "IsolateTo" = "8:"
-            }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_B9E2752408ADC7D6926A5F233AED9FE7"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_634C6AC1F889B709D4296CF4F438F245"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:InputDialog, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_B9E2752408ADC7D6926A5F233AED9FE7"
+                    "_634C6AC1F889B709D4296CF4F438F245"
                     {
                     "Name" = "8:InputDialog.dll"
                     "Attributes" = "3:512"
@@ -278,14 +239,14 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_BF0F609B0537DB65B2AFC0B24152FA8E"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_747978F3097ED9EAF1C719BB8B709B40"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:EncryptIt, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_BF0F609B0537DB65B2AFC0B24152FA8E"
+                    "_747978F3097ED9EAF1C719BB8B709B40"
                     {
                     "Name" = "8:EncryptIt.dll"
                     "Attributes" = "3:512"
@@ -309,20 +270,102 @@
             "IsDependency" = "11:TRUE"
             "IsolateTo" = "8:"
             }
-            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_D32ABA30756FF3F39DCAFE91CC4B6AFC"
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_853C654815374DF2331A6A8E50D31003"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:WaitCursor, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_853C654815374DF2331A6A8E50D31003"
+                    {
+                    "Name" = "8:WaitCursor.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:WaitCursor.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_8D92A0668CE741B78CD23854F07C937C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8DCBC3259C554FCC9524A2EA5DFA4CA3"
+            {
+            "SourcePath" = "8:Uninstall GhostBuster.txt"
+            "TargetName" = "8:Uninstall GhostBuster.lnk"
+            "Tag" = "8:"
+            "Folder" = "8:_E7C75B28E3734E5B835B607BF185C478"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_A919FD5A8028A0AD0AFD2667178FC236"
             {
             "AssemblyRegister" = "3:1"
             "AssemblyIsInGAC" = "11:FALSE"
             "AssemblyAsmDisplayName" = "8:IniFile, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL"
                 "ScatterAssemblies"
                 {
-                    "_D32ABA30756FF3F39DCAFE91CC4B6AFC"
+                    "_A919FD5A8028A0AD0AFD2667178FC236"
                     {
                     "Name" = "8:IniFile.dll"
                     "Attributes" = "3:512"
                     }
                 }
             "SourcePath" = "8:IniFile.dll"
+            "TargetName" = "8:"
+            "Tag" = "8:"
+            "Folder" = "8:_8D92A0668CE741B78CD23854F07C937C"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:TRUE"
+            "IsolateTo" = "8:"
+            }
+            "{9F6F8455-1EF1-4B85-886A-4223BCC8E7F7}:_DA9157FDF7E788D908010ACEEC03A421"
+            {
+            "AssemblyRegister" = "3:1"
+            "AssemblyIsInGAC" = "11:FALSE"
+            "AssemblyAsmDisplayName" = "8:Microsoft.Win32.TaskScheduler, Version=1.7.4378.16959, Culture=neutral, processorArchitecture=MSIL"
+                "ScatterAssemblies"
+                {
+                    "_DA9157FDF7E788D908010ACEEC03A421"
+                    {
+                    "Name" = "8:Microsoft.Win32.TaskScheduler.dll"
+                    "Attributes" = "3:512"
+                    }
+                }
+            "SourcePath" = "8:Microsoft.Win32.TaskScheduler.dll"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_8D92A0668CE741B78CD23854F07C937C"
@@ -428,7 +471,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:GhostBuster"
         "ProductCode" = "8:{63A47DBF-2C74-40E5-B250-99F7DDF94D0E}"
-        "PackageCode" = "8:{05EA55EF-284E-4FFC-84D6-89C3AC9BB601}"
+        "PackageCode" = "8:{17C914E5-8DB7-4CA1-92DB-A8F6DF54FDF7}"
         "UpgradeCode" = "8:{A813DEB1-692F-4578-97CE-42FDEF40FAEE}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"

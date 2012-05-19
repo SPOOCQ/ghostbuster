@@ -32,9 +32,10 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Mainform));
             this.RemoveBtn = new System.Windows.Forms.Button();
             this.listView1 = new System.Windows.Forms.ListView();
-            this.DeviceCol = new System.Windows.Forms.ColumnHeader();
-            this.StatusCol = new System.Windows.Forms.ColumnHeader();
-            this.MatchTypeCol = new System.Windows.Forms.ColumnHeader();
+            this.DeviceCol = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.StatusCol = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.MatchTypeCol = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.DescriptionCol = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.AddClassMnu = new System.Windows.Forms.ToolStripMenuItem();
             this.AddDeviceMnu = new System.Windows.Forms.ToolStripMenuItem();
@@ -50,7 +51,14 @@
             this.toolStripStatusLabel2 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusLabel3 = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripProgressBar1 = new System.Windows.Forms.ToolStripProgressBar();
-            this.DescriptionCol = new System.Windows.Forms.ColumnHeader();
+            this.chkSysRestore = new System.Windows.Forms.CheckBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.hideUnfilteredDevicesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripStatusLabel4 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.propertiesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.ManufacturerCol = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.contextMenuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -69,11 +77,12 @@
             // 
             // listView1
             // 
-            this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.listView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.listView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.DeviceCol,
+            this.ManufacturerCol,
             this.StatusCol,
             this.MatchTypeCol,
             this.DescriptionCol});
@@ -103,6 +112,10 @@
             this.MatchTypeCol.Text = "Match Type";
             this.MatchTypeCol.Width = 100;
             // 
+            // DescriptionCol
+            // 
+            this.DescriptionCol.Text = "Description";
+            // 
             // contextMenuStrip1
             // 
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -112,48 +125,52 @@
             this.toolStripSeparator1,
             this.RemoveClassMnu,
             this.RemoveDeviceMnu,
-            this.removeToolStripMenuItem});
+            this.removeToolStripMenuItem,
+            this.toolStripSeparator2,
+            this.hideUnfilteredDevicesToolStripMenuItem,
+            this.toolStripSeparator3,
+            this.propertiesToolStripMenuItem});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(168, 142);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(198, 198);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // AddClassMnu
             // 
             this.AddClassMnu.Name = "AddClassMnu";
-            this.AddClassMnu.Size = new System.Drawing.Size(167, 22);
+            this.AddClassMnu.Size = new System.Drawing.Size(197, 22);
             this.AddClassMnu.Text = "Add Class";
             this.AddClassMnu.Click += new System.EventHandler(this.AddClassMnu_Click);
             // 
             // AddDeviceMnu
             // 
             this.AddDeviceMnu.Name = "AddDeviceMnu";
-            this.AddDeviceMnu.Size = new System.Drawing.Size(167, 22);
+            this.AddDeviceMnu.Size = new System.Drawing.Size(197, 22);
             this.AddDeviceMnu.Text = "Add Device";
             this.AddDeviceMnu.Click += new System.EventHandler(this.AddDeviceMnu_Click);
             // 
             // AddWildCardMnu
             // 
             this.AddWildCardMnu.Name = "AddWildCardMnu";
-            this.AddWildCardMnu.Size = new System.Drawing.Size(167, 22);
+            this.AddWildCardMnu.Size = new System.Drawing.Size(197, 22);
             this.AddWildCardMnu.Text = "Add Wildcard";
             this.AddWildCardMnu.Click += new System.EventHandler(this.AddWildCardMnu_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(164, 6);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(194, 6);
             // 
             // RemoveClassMnu
             // 
             this.RemoveClassMnu.Name = "RemoveClassMnu";
-            this.RemoveClassMnu.Size = new System.Drawing.Size(167, 22);
+            this.RemoveClassMnu.Size = new System.Drawing.Size(197, 22);
             this.RemoveClassMnu.Text = "Remove Class";
             this.RemoveClassMnu.Click += new System.EventHandler(this.RemoveClassMnu_Click);
             // 
             // RemoveDeviceMnu
             // 
             this.RemoveDeviceMnu.Name = "RemoveDeviceMnu";
-            this.RemoveDeviceMnu.Size = new System.Drawing.Size(167, 22);
+            this.RemoveDeviceMnu.Size = new System.Drawing.Size(197, 22);
             this.RemoveDeviceMnu.Text = "Remove Device";
             this.RemoveDeviceMnu.Click += new System.EventHandler(this.RemoveDeviceMnu_Click);
             // 
@@ -162,7 +179,7 @@
             this.removeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.cancelToolStripMenuItem});
             this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
-            this.removeToolStripMenuItem.Size = new System.Drawing.Size(167, 22);
+            this.removeToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.removeToolStripMenuItem.Text = "Remove Wildcard";
             // 
             // cancelToolStripMenuItem
@@ -190,6 +207,7 @@
             this.toolStripStatusLabel1,
             this.toolStripStatusLabel2,
             this.toolStripStatusLabel3,
+            this.toolStripStatusLabel4,
             this.toolStripProgressBar1});
             this.statusStrip1.Location = new System.Drawing.Point(0, 317);
             this.statusStrip1.Name = "statusStrip1";
@@ -220,21 +238,79 @@
             this.toolStripProgressBar1.Name = "toolStripProgressBar1";
             this.toolStripProgressBar1.Size = new System.Drawing.Size(100, 16);
             // 
-            // DescriptionCol
+            // chkSysRestore
             // 
-            this.DescriptionCol.Text = "Description";
+            this.chkSysRestore.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.chkSysRestore.AutoSize = true;
+            this.chkSysRestore.Location = new System.Drawing.Point(376, 295);
+            this.chkSysRestore.Name = "chkSysRestore";
+            this.chkSysRestore.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkSysRestore.Size = new System.Drawing.Size(191, 17);
+            this.chkSysRestore.TabIndex = 4;
+            this.chkSysRestore.Text = "Create System Restore Checkpoint";
+            this.chkSysRestore.UseVisualStyleBackColor = true;
+            this.chkSysRestore.CheckedChanged += new System.EventHandler(this.chkSysRestore_CheckedChanged);
             // 
-            // Form1
+            // label1
+            // 
+            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(12, 296);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(0, 13);
+            this.label1.TabIndex = 5;
+            // 
+            // toolStripSeparator2
+            // 
+            this.toolStripSeparator2.Name = "toolStripSeparator2";
+            this.toolStripSeparator2.Size = new System.Drawing.Size(194, 6);
+            // 
+            // hideUnfilteredDevicesToolStripMenuItem
+            // 
+            this.hideUnfilteredDevicesToolStripMenuItem.CheckOnClick = true;
+            this.hideUnfilteredDevicesToolStripMenuItem.Name = "hideUnfilteredDevicesToolStripMenuItem";
+            this.hideUnfilteredDevicesToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.hideUnfilteredDevicesToolStripMenuItem.Text = "Hide Unfiltered Devices";
+            this.hideUnfilteredDevicesToolStripMenuItem.CheckedChanged += new System.EventHandler(this.hideUnfilteredDevicesToolStripMenuItem_CheckedChanged);
+            // 
+            // toolStripStatusLabel4
+            // 
+            this.toolStripStatusLabel4.Name = "toolStripStatusLabel4";
+            this.toolStripStatusLabel4.Size = new System.Drawing.Size(118, 17);
+            this.toolStripStatusLabel4.Text = "toolStripStatusLabel4";
+            // 
+            // toolStripSeparator3
+            // 
+            this.toolStripSeparator3.Name = "toolStripSeparator3";
+            this.toolStripSeparator3.Size = new System.Drawing.Size(194, 6);
+            // 
+            // propertiesToolStripMenuItem
+            // 
+            this.propertiesToolStripMenuItem.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.propertiesToolStripMenuItem.Name = "propertiesToolStripMenuItem";
+            this.propertiesToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.propertiesToolStripMenuItem.Text = "Properties";
+            this.propertiesToolStripMenuItem.Click += new System.EventHandler(this.propertiesToolStripMenuItem_Click);
+            // 
+            // ManufacturerCol
+            // 
+            this.ManufacturerCol.Text = "Manufacturer";
+            this.ManufacturerCol.Width = 80;
+            // 
+            // Mainform
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(799, 339);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.chkSysRestore);
             this.Controls.Add(this.listView1);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.RefreshBtn);
             this.Controls.Add(this.RemoveBtn);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Name = "Form1";
+            this.Name = "Mainform";
             this.SizeGripStyle = System.Windows.Forms.SizeGripStyle.Show;
             this.Text = "GhostBuster";
             this.Load += new System.EventHandler(this.Form1_Load);
@@ -269,6 +345,14 @@
         private System.Windows.Forms.ToolStripMenuItem removeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem cancelToolStripMenuItem;
         private System.Windows.Forms.ColumnHeader DescriptionCol;
+        private System.Windows.Forms.CheckBox chkSysRestore;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripMenuItem hideUnfilteredDevicesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel4;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
+        private System.Windows.Forms.ToolStripMenuItem propertiesToolStripMenuItem;
+        private System.Windows.Forms.ColumnHeader ManufacturerCol;
     }
 }
 

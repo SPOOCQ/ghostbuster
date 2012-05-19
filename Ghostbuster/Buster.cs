@@ -48,6 +48,7 @@ namespace Ghostbuster
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Security.Principal;
+    using System.Collections.ObjectModel;
 
     #region Enumerations
 
@@ -58,25 +59,64 @@ namespace Ghostbuster
     /// </summary>
     public enum SPDRP
     {
+        [Description("Device Description")]
         DEVICEDESC = 0x00000000,
+
+        [Description("Hardware Id")]
         HARDWAREID = 0x00000001,
+
+        [Description("Compatiblel ID's")]
         COMPATIBLEIDS = 0x00000002,
+
+        [Description("NT Device Paths")]
         NTDEVICEPATHS = 0x00000003,
+
+        [Description("Service")]
         SERVICE = 0x00000004,
+
+        [Description("Configuration")]
         CONFIGURATION = 0x00000005,
+
+        [Description("Configuration Vector")]
         CONFIGURATIONVECTOR = 0x00000006,
+
+        [Description("Class")]
         CLASS = 0x00000007,
+
+        [Description("Class GUID")]
         CLASSGUID = 0x00000008,
+
+        [Description("Driver")]
         DRIVER = 0x00000009,
+
+        [Description("Config Flags")]
         CONFIGFLAGS = 0x0000000A,
+
+        [Description("Manufacturer")]
         MFG = 0x0000000B,
+
+        [Description("Friendly Name")]
         FRIENDLYNAME = 0x0000000C,
+
+        [Description("Locaton Information")]
         LOCATION_INFORMATION = 0x0000000D,
+
+        [Description("Physical Device Object Name")]
         PHYSICAL_DEVICE_OBJECT_NAME = 0x0000000E,
+
+        [Description("Capabilities")]
         CAPABILITIES = 0x0000000F,
+
+        [Description("UI Number")]
         UI_NUMBER = 0x00000010,
+
+        [Description("Upper Filters")]
         UPPERFILTERS = 0x00000011,
+
+        [Description("Lower Filters")]
         LOWERFILTERS = 0x00000012,
+
+        [Description("")]
         MAXIMUM_PROPERTY = 0x00000013,
     }
 
@@ -121,7 +161,7 @@ namespace Ghostbuster
         /// <summary>
         /// The Devices.
         ///// </summary>
-        public static List<HwEntry> HwEntries = new List<HwEntry>();
+        public static ObservableCollection<HwEntry> HwEntries = new ObservableCollection<HwEntry>();
 
         /// <summary>
         /// IniFileName (Should Automatically use %AppData% when neccesary)!
@@ -252,7 +292,15 @@ namespace Ghostbuster
                                     (uint)SPDRP.FRIENDLYNAME, out PropertyRegDataType,
                                     sb, nBytes, out RequiredSize);
 
+                                //Debug.WriteLine(SetupDi.GetProviderName(DevInfoSet, ref aDeviceInfoData));
+
                                 HwEntries.Add(new HwEntry(DevInfoSet, aDeviceInfo, aDeviceInfoData, sb.ToString()));
+
+                                SetupDi.SetupDiGetDeviceRegistryProperty(DevInfoSet, ref aDeviceInfoData,
+                                  (uint)SPDRP.MFG, out PropertyRegDataType,
+                                  sb, nBytes, out RequiredSize);
+                                Debug.WriteLine(sb);
+
                             }
                             finally
                             {
@@ -545,6 +593,24 @@ namespace Ghostbuster
             }
 
             this.FriendlyName = FriendlyName;
+
+            Properties = new Dictionary<String, String>();
+
+            foreach (SPDRP s in Enum.GetValues(typeof(SPDRP)))
+            {
+                uint PropertyRegDataType;
+
+                uint nBytes = 512;
+                StringBuilder sb = new StringBuilder();
+                sb.Length = (int)nBytes;
+                uint RequiredSize = 0;
+
+                SetupDi.SetupDiGetDeviceRegistryProperty(aDeviceInfoSet, ref aDeviceInfoData,
+                                      (uint)s, out PropertyRegDataType,
+                                      sb, nBytes, out RequiredSize);
+
+                Properties.Add(s.ToString(), sb.ToString());
+            }
         }
 
         #endregion Constructors
@@ -596,6 +662,12 @@ namespace Ghostbuster
             {
                 return DeviceStatus.Equals("Ghosted");
             }
+        }
+
+        public Dictionary<String, String> Properties
+        {
+            get;
+            set;
         }
 
         #endregion Properties

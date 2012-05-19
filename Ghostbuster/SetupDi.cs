@@ -38,6 +38,7 @@ namespace GhostBuster
     using System.Text;
     using System.Windows.Forms;
     using Microsoft.Win32;
+    using System.ComponentModel;
 
     public class SetupDi
     {
@@ -57,6 +58,12 @@ namespace GhostBuster
         internal const String Kernel32ModuleName = "kernel32.dll";
 
         internal const UInt32 SPDRP_DEVICEDESC = 0x00000000;
+
+        internal enum SPDIT
+        {
+            CLASSDRIVER = 0x00000001,
+            COMPATDRIVER = 0x00000002,
+        }
 
         internal const UInt32 DICS_FLAG_GLOBAL = 0x00000001;
 
@@ -162,6 +169,30 @@ namespace GhostBuster
             public UIntPtr Reserved;
         };
 
+        public const Int32 LINE_LEN = 256;
+
+        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+        public struct SP_DRVINFO_DATA
+        {
+            public Int32 cbSize;
+            public Int32 DriverType;
+            public IntPtr Reserved;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = LINE_LEN)]
+            public String Description;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = LINE_LEN)]
+            public String MfgName;
+
+            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = LINE_LEN)]
+            public String ProviderName;
+
+            System.Runtime.InteropServices.ComTypes.FILETIME DriverDate;
+
+            ulong DriverVersion;
+        };
+
+
         [DllImport(SetupApiModuleName)]
         internal static extern Int32 SetupDiDestroyDeviceInfoList(IntPtr DeviceInfoSet);
 
@@ -193,6 +224,15 @@ namespace GhostBuster
 
         [DllImport(SetupApiModuleName, SetLastError = true)]
         internal static extern bool SetupDiRemoveDevice(IntPtr DeviceInfoSet, ref SP_DEVINFO_DATA DeviceInfoData);
+
+        [DllImport("setupapi.dll", SetLastError = true)]
+        private static extern bool SetupDiEnumDriverInfo(IntPtr DeviceInfoSet, ref SP_DEVINFO_DATA DeviceInfoData, uint DriverType, int MemberIndex, ref SP_DRVINFO_DATA DriverInfoData);
+
+        [DllImport("setupapi.dll", SetLastError = true)]
+        private static extern bool SetupDiEnumDriverInfo(IntPtr DeviceInfoSet, IntPtr DeviceInfoData, uint DriverType, int MemberIndex, ref SP_DRVINFO_DATA DriverInfoData);
+
+        //[DllImport(SetupApiModuleName, SetLastError = true)]
+        //internal static extern int CM_Get_DevNode_Status(out UInt32 status, out UInt32 probNum, UInt32 devInst, int flags);
 
         //[DllImport(AdvApi32ModuleName, EntryPoint = "RegEnumKeyEx")]
         //extern private static int RegEnumKeyEx(IntPtr hKey,
@@ -406,6 +446,29 @@ namespace GhostBuster
             }
 
             return String.IsNullOrEmpty(deviceinfo.deviceclass);
+        }
+
+        /// <summary>
+        /// 18-05-2012 - Code FAILS!
+        /// </summary>
+        /// <param name="pdevinfoset"></param>
+        /// <param name="deviceinfodata"></param>
+        /// <returns></returns>
+        internal static String GetProviderName(IntPtr pdevinfoset, ref  SP_DEVINFO_DATA deviceinfodata)
+        {
+            Int32 memIndex = 0;
+
+            SP_DRVINFO_DATA drvData = new SP_DRVINFO_DATA();
+            drvData.cbSize = Marshal.SizeOf(typeof(SP_DRVINFO_DATA));
+            if (SetupDiEnumDriverInfo(pdevinfoset, IntPtr.Zero, (uint)SPDIT.CLASSDRIVER, memIndex, ref drvData))
+            // ref deviceinfodata
+            {
+                return drvData.ProviderName;
+            }
+
+            Debug.WriteLine(new Win32Exception(Marshal.GetHRForLastWin32Error()));
+
+            return String.Empty;
         }
 
         /// <summary>
