@@ -583,6 +583,11 @@ namespace Ghostbuster
                 //! Make Sure Services are NEVER flagged as Ghosted by checking them first.
                 this.DeviceStatus = "Service";
             }
+            else if (aDeviceInfo.friendlyname.Equals(Guid.Empty.ToString()))
+            {
+                //! Make Sure the Null Guid Devices is NEVER flagged as Ghosted by checking them first.
+                this.DeviceStatus = "System";
+            }
             else if (aDeviceInfo.ghosted)
             {
                 this.DeviceStatus = "Ghosted";

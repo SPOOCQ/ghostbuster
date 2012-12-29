@@ -78,6 +78,13 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                 - Added Properties MenuItem.
 //                 - Uploaded to CodePlex.
 //----------   ---   -------------------------------------------------------------------------------
+// 29-12-2012  veg - Improved System Restore Detection (search for rstrui.exe).
+//                 - Flagged null guid device as system so it cannot be removed anymore.
+//                 - Added <No device class specified> to devices with an empty deviceclass.
+//                 - Set copyright to 2012.
+//                 - Version set to v1.0.2.0.
+//                 - Uploaded to CodePlex.
+//----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
 //                 - More Device Info:
@@ -571,7 +578,7 @@ namespace Ghostbuster
                                     if (String.Compare(lvg.Name, he.DeviceClass, true) >= 0)
                                     {
                                         Int32 ndx = listView1.Groups.IndexOf(lvg);
-                                        listView1.Groups.Insert(ndx, new ListViewGroup(he.DeviceClass, he.DeviceClass));
+                                        listView1.Groups.Insert(ndx, new ListViewGroup(he.DeviceClass, String.IsNullOrEmpty(he.DeviceClass) ? "<No device class specified>" : he.DeviceClass));
                                         listView1.Groups[ndx].Items.Add(lvi);
 
                                         break;
@@ -648,6 +655,14 @@ namespace Ghostbuster
                 {
                     toolStripProgressBar1.Value = toolStripProgressBar1.Maximum;
                 }
+
+                //foreach (ListViewGroup lvg in listView1.Groups)
+                //{
+                //    if (String.IsNullOrEmpty(lvg.Header))
+                //    {
+                //        lvg.Header = "<No Class Specified>";
+                //    }
+                //}
             }
         }
 
@@ -662,25 +677,37 @@ namespace Ghostbuster
 
             StringBuilder sbPath = new StringBuilder(260);
 
+            if (File.Exists(Path.Combine(Environment.SystemDirectory, "rstrui.exe")))
+            {
+                Debug.Print("rstrui.exe detected: '{0}'", Path.Combine(Environment.SystemDirectory, "rstrui.exe"));
+                return true;
+            }
+
+            if (SearchPath(null, "rstrui.exe", null, 260, sbPath, null) != 0)
+            {
+                Debug.Print("rstrui.exe detected: '{0}'", sbPath.ToString());
+                return true;
+            }
+
             // See if DLL exists
-            if (SearchPath(null, "srclient.dll", null, 260, sbPath, null) != 0)
-                return true;
+            //if (SearchPath(null, "srclient.dll", null, 260, sbPath, null) != 0)
+            //    return true;
 
-            // Windows ME
-            if (majorVersion == 4 && minorVersion == 90)
-                return true;
+            //// Windows ME
+            //if (majorVersion == 4 && minorVersion == 90)
+            //    return true;
 
-            // Windows XP
-            if (majorVersion == 5 && minorVersion == 1)
-                return true;
+            //// Windows XP
+            //if (majorVersion == 5 && minorVersion == 1)
+            //    return true;
 
-            // Windows Vista
-            if (majorVersion == 6 && minorVersion == 0)
-                return true;
+            //// Windows Vista
+            //if (majorVersion == 6 && minorVersion == 0)
+            //    return true;
 
-            // Windows 7
-            if (majorVersion == 6 && minorVersion == 1)
-                return true;
+            //// Windows 7
+            //if (majorVersion == 6 && minorVersion == 1)
+            //    return true;
 
             // All others : Win 95, 98, 2000, Server
             return false;
@@ -703,7 +730,7 @@ namespace Ghostbuster
                 chkSysRestore.Checked = ini.ReadBool("Setup", "CreateCheckPoint", chkSysRestore.Checked);
             }
 
-            if (chkSysRestore.Checked)
+            if (chkSysRestore.Enabled)
             {
                 Console.WriteLine("System Restore Available");
             }
