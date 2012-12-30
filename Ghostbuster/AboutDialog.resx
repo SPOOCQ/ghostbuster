@@ -117,8 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
-  <data name="btn_donateCC_LG" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\btn_donateCC_LG.gif;System.Drawing.Bitmap, System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  <data name="textBox1.Text" xml:space="preserve">
+    <value>About Ghostbuster v{0}:
+
+If you like this tool, click the Paypal Donate button below or write a review at codeplex. 
+
+If you encounter problems or have suggestions for improvements, create an issue at codeplex or mail me.</value>
   </data>
 </root>

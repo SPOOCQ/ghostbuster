@@ -85,6 +85,10 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //                 - Version set to v1.0.2.0.
 //                 - Uploaded to CodePlex.
 //----------   ---   -------------------------------------------------------------------------------
+// 30-12-2012  veg - Added Main Menu with Help|About.
+//                 - Removed dll directory from project.
+//                 - Version set to v1.0.2.0.
+//----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
 //                 - More Device Info:
@@ -113,12 +117,14 @@ namespace Ghostbuster
 {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
     using System.Collections.Specialized;
     using System.ComponentModel;
     using System.Diagnostics;
     using System.Drawing;
     using System.IO;
     using System.Management;
+    using System.Reflection;
     using System.Runtime.InteropServices;
     using System.Security.Principal;
     using System.Text;
@@ -130,21 +136,19 @@ namespace Ghostbuster
     using Swiss;
 
     using HDEVINFO = System.IntPtr;
-    using System.Collections.Generic;
-    using System.Reflection;
 
     public partial class Mainform : Form
     {
         #region Fields
 
-        internal const int BCM_FIRST = 0x1600; //Normal button
-        internal const int BCM_SETSHIELD = (BCM_FIRST + 0x000C); //Elevated button
-        internal const int S_OK = 0;
-
         /// <summary>
         /// Name of the Wmi ReturnValue Property.
         /// </summary>
         public const String ReturnValue = "ReturnValue";
+
+        internal const int BCM_FIRST = 0x1600; //Normal button
+        internal const int BCM_SETSHIELD = (BCM_FIRST + 0x000C); //Elevated button
+        internal const int S_OK = 0;
 
         /// <summary>
         /// The ToolTip used for displaying Context Menu Info.
@@ -272,6 +276,53 @@ namespace Ghostbuster
         public static extern UInt32 SendMessage(IntPtr hWnd, UInt32 msg, UInt32 wParam, UInt32 lParam);
 
         /// <summary>
+        /// Verifies that the OS can do system restores.
+        /// </summary>
+        /// <returns>True if OS is either ME,XP,Vista,7</returns>
+        public static bool SysRestoreAvailable()
+        {
+            int majorVersion = Environment.OSVersion.Version.Major;
+            int minorVersion = Environment.OSVersion.Version.Minor;
+
+            StringBuilder sbPath = new StringBuilder(260);
+
+            if (File.Exists(Path.Combine(Environment.SystemDirectory, "rstrui.exe")))
+            {
+                Debug.Print("rstrui.exe detected: '{0}'", Path.Combine(Environment.SystemDirectory, "rstrui.exe"));
+                return true;
+            }
+
+            if (SearchPath(null, "rstrui.exe", null, 260, sbPath, null) != 0)
+            {
+                Debug.Print("rstrui.exe detected: '{0}'", sbPath.ToString());
+                return true;
+            }
+
+            // See if DLL exists
+            //if (SearchPath(null, "srclient.dll", null, 260, sbPath, null) != 0)
+            //    return true;
+
+            //// Windows ME
+            //if (majorVersion == 4 && minorVersion == 90)
+            //    return true;
+
+            //// Windows XP
+            //if (majorVersion == 5 && minorVersion == 1)
+            //    return true;
+
+            //// Windows Vista
+            //if (majorVersion == 6 && minorVersion == 0)
+            //    return true;
+
+            //// Windows 7
+            //if (majorVersion == 6 && minorVersion == 1)
+            //    return true;
+
+            // All others : Win 95, 98, 2000, Server
+            return false;
+        }
+
+        /// <summary>
         /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa378847(v=vs.85).aspx
         /// </summary>
         /// <param name="description"></param>
@@ -395,6 +446,19 @@ namespace Ghostbuster
         {
             b.FlatStyle = FlatStyle.System;
             SendMessage(b.Handle, BCM_SETSHIELD, 0, 0xFFFFFFFF);
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        internal static extern uint SearchPath(string lpPath,
+            string lpFileName,
+            string lpExtension,
+            int nBufferLength,
+            [MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpBuffer,
+            string lpFilePart);
+
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new AboutDialog().ShowDialog();
         }
 
         /// <summary>
@@ -666,51 +730,9 @@ namespace Ghostbuster
             }
         }
 
-        /// <summary>
-        /// Verifies that the OS can do system restores.
-        /// </summary>
-        /// <returns>True if OS is either ME,XP,Vista,7</returns>
-        public static bool SysRestoreAvailable()
+        private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            int majorVersion = Environment.OSVersion.Version.Major;
-            int minorVersion = Environment.OSVersion.Version.Minor;
-
-            StringBuilder sbPath = new StringBuilder(260);
-
-            if (File.Exists(Path.Combine(Environment.SystemDirectory, "rstrui.exe")))
-            {
-                Debug.Print("rstrui.exe detected: '{0}'", Path.Combine(Environment.SystemDirectory, "rstrui.exe"));
-                return true;
-            }
-
-            if (SearchPath(null, "rstrui.exe", null, 260, sbPath, null) != 0)
-            {
-                Debug.Print("rstrui.exe detected: '{0}'", sbPath.ToString());
-                return true;
-            }
-
-            // See if DLL exists
-            //if (SearchPath(null, "srclient.dll", null, 260, sbPath, null) != 0)
-            //    return true;
-
-            //// Windows ME
-            //if (majorVersion == 4 && minorVersion == 90)
-            //    return true;
-
-            //// Windows XP
-            //if (majorVersion == 5 && minorVersion == 1)
-            //    return true;
-
-            //// Windows Vista
-            //if (majorVersion == 6 && minorVersion == 0)
-            //    return true;
-
-            //// Windows 7
-            //if (majorVersion == 6 && minorVersion == 1)
-            //    return true;
-
-            // All others : Win 95, 98, 2000, Server
-            return false;
+            Application.Exit();
         }
 
         /// <summary>
@@ -760,10 +782,41 @@ namespace Ghostbuster
             "2) Removed devices or classes of the removal list.");
         }
 
+        private void hideUnfilteredDevicesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
+        {
+            Enumerate(false, ((ToolStripMenuItem)(sender)).CheckState == CheckState.Checked);
+        }
+
         void HwEntries_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             toolStripStatusLabel1.Text = String.Format("{0} Device(s)", Buster.HwEntries.Count);
             statusStrip1.Update();
+        }
+
+        private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems != null &&
+                listView1.SelectedItems.Count == 1 &&
+               listView1.SelectedItems[0].Tag != null)
+            {
+                Debug.WriteLine("[Properties]");
+                HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
+
+                PropertyForm pf = new PropertyForm();
+
+                pf.textBox1.Clear();
+
+                foreach (KeyValuePair<String, String> kvp in he.Properties)
+                {
+                    String descr = EnumExtensions.GetDescription<SPDRP>((SPDRP)Enum.Parse(typeof(SPDRP), kvp.Key));
+                    if (!String.IsNullOrEmpty(descr))
+                    {
+                        pf.textBox1.Text += String.Format("{0,32} =  {1}\r\n", descr, kvp.Value);
+                    }
+                }
+
+                pf.ShowDialog();
+            }
         }
 
         /// <summary>
@@ -887,45 +940,6 @@ namespace Ghostbuster
             catch (Win32Exception)
             {
                 //Do nothing. Probably the user canceled the UAC window
-            }
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        internal static extern uint SearchPath(string lpPath,
-            string lpFileName,
-            string lpExtension,
-            int nBufferLength,
-            [MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpBuffer,
-            string lpFilePart);
-
-        private void hideUnfilteredDevicesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
-        {
-            Enumerate(false, ((ToolStripMenuItem)(sender)).CheckState == CheckState.Checked);
-        }
-
-        private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (listView1.SelectedItems != null &&
-                listView1.SelectedItems.Count == 1 &&
-               listView1.SelectedItems[0].Tag != null)
-            {
-                Debug.WriteLine("[Properties]");
-                HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
-
-                PropertyForm pf = new PropertyForm();
-
-                pf.textBox1.Clear();
-
-                foreach (KeyValuePair<String, String> kvp in he.Properties)
-                {
-                    String descr = EnumExtensions.GetDescription<SPDRP>((SPDRP)Enum.Parse(typeof(SPDRP), kvp.Key));
-                    if (!String.IsNullOrEmpty(descr))
-                    {
-                        pf.textBox1.Text += String.Format("{0,32} =  {1}\r\n", descr, kvp.Value);
-                    }
-                }
-
-                pf.ShowDialog();
             }
         }
 
