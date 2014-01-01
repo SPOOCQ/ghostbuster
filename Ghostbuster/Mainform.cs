@@ -943,6 +943,16 @@ namespace Ghostbuster
             }
         }
 
+        private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ClickOnceUpdater.InstallUpdateSyncWithInfo("http://ghostbuster.codeplex.com/releases/view/latest");
+        }
+
+        private void visitWebsiteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ClickOnceUpdater.VisitWebsite("http://ghostbuster.codeplex.com/");
+        }
+
         #endregion Methods
     }
 }

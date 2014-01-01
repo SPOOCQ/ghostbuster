@@ -13,10 +13,10 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ApplicationIcon>Scream.ico</ApplicationIcon>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
+    <SccProjectName>PlasticSCM</SccProjectName>
+    <SccLocalPath>PlasticSCM</SccLocalPath>
+    <SccAuxPath>PlasticSCM</SccAuxPath>
+    <SccProvider>Plastic SCM Source Control Service:{774e58ba-f1b9-40a7-b676-834fa2c220fe}</SccProvider>
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -119,6 +119,7 @@
       <DependentUpon>AboutDialog.cs</DependentUpon>
     </Compile>
     <Compile Include="Buster.cs" />
+    <Compile Include="ClickOnceUpdater.cs" />
     <Compile Include="DoubleBufferListView.cs" />
     <Compile Include="EnumExtensions.cs" />
     <Compile Include="PropertyForm.cs">
@@ -216,7 +217,7 @@
   -->
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildAction="ReBuild" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_StartDate="2010/1/8" />
+      <UserProperties BuildVersion_StartDate="2010/1/8" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_BuildAction="ReBuild" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
