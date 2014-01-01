@@ -38,7 +38,7 @@
     <InstallUrl>http://ghostbuster.codeplex.com/releases/clickonce/</InstallUrl>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>3</ApplicationRevision>
+    <ApplicationRevision>4</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -222,6 +222,7 @@
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
-    <PostBuildEvent>"C:\Program Files (x86)\Microsoft\ILMerge\ILMerge" /out:"$(TargetDir)$(TargetName)Portable.exe" "$(TargetPath)" "$(TargetDir)InputDialog.dll" "$(TargetDir)WaitCursor.dll" "$(TargetDir)IniFile.dll"  "$(TargetDir)EncryptIt.dll" "$(TargetDir)Microsoft.Win32.TaskScheduler.dll"</PostBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>
