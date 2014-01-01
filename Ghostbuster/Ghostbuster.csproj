@@ -38,7 +38,7 @@
     <InstallUrl>http://ghostbuster.codeplex.com/releases/clickonce/</InstallUrl>
     <CreateWebPageOnPublish>true</CreateWebPageOnPublish>
     <WebPage>publish.htm</WebPage>
-    <ApplicationRevision>1</ApplicationRevision>
+    <ApplicationRevision>3</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
@@ -67,10 +67,10 @@
     <StartupObject>Ghostbuster.Program</StartupObject>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestCertificateThumbprint>A9D48D51B2DBBCEC1B84105A08C0F38D94B76E62</ManifestCertificateThumbprint>
+    <ManifestCertificateThumbprint>14216D6DCC33DA92D5527F7E6DD59DA7F172D8C5</ManifestCertificateThumbprint>
   </PropertyGroup>
   <PropertyGroup>
-    <ManifestKeyFile>Ghostbuster_TemporaryKey.pfx</ManifestKeyFile>
+    <ManifestKeyFile>Ghostbuster_NewKey.pfx</ManifestKeyFile>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateManifests>true</GenerateManifests>
@@ -158,6 +158,7 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="app.config" />
+    <None Include="Ghostbuster_NewKey.pfx" />
     <None Include="Ghostbuster_TemporaryKey.pfx" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
