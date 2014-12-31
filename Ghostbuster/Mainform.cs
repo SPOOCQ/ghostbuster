@@ -1,7 +1,7 @@
 ﻿#region Header
 
 /*
-Copyright (c) 2009, G.W. van der Vegt
+Copyright (c) 2015, G.W. van der Vegt
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided
@@ -80,7 +80,7 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //----------   ---   -------------------------------------------------------------------------------
 // 29-12-2012  veg - Improved System Restore Detection (search for rstrui.exe).
 //                 - Flagged null guid device as system so it cannot be removed anymore.
-//                 - Added <No device class specified> to devices with an empty deviceclass.
+//                 - Added <No device class specified> to devices with an empty device class.
 //                 - Set copyright to 2012.
 //                 - Version set to v1.0.2.0.
 //                 - Uploaded to CodePlex.
@@ -88,6 +88,19 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 // 30-12-2012  veg - Added Main Menu with Help|About.
 //                 - Removed dll directory from project.
 //                 - Version set to v1.0.2.0.
+//----------   ---   -------------------------------------------------------------------------------
+//                 - Added menu option for checking click-once updates.
+//                 - Updated Paypal button.
+//                 - Added menu.
+//                 - Version set to v1.0.4.0.
+//                 - Uploaded to CodePlex.
+//----------   ---   -------------------------------------------------------------------------------
+// 31-12-2014  veg - Updated code that shows a devices properties (context menu).
+//                 - Added new code to release comport that are removed but still in use.
+//                   Note: it will not repair missing items in the comportdb (yet).
+//                 - Added opening the registry for either the device or the services key (if present).
+//                 - Version set to v1.0.5.0.
+//                 - Uploaded to CodePlex.
 //----------   ---   -------------------------------------------------------------------------------
 //TODO             - SetupDiLoadClassIcon()
 //                 - SetupDiLoadDeviceIcon()
@@ -130,13 +143,14 @@ namespace Ghostbuster
     using System.Text;
     using System.Threading;
     using System.Windows.Forms;
-
     using GhostBuster;
-
+    using Microsoft.Win32;
     using Swiss;
-
     using HDEVINFO = System.IntPtr;
 
+    /// <summary>
+    /// Form for viewing the main.
+    /// </summary>
     public partial class Mainform : Form
     {
         #region Fields
@@ -146,8 +160,19 @@ namespace Ghostbuster
         /// </summary>
         public const String ReturnValue = "ReturnValue";
 
-        internal const int BCM_FIRST = 0x1600; //Normal button
-        internal const int BCM_SETSHIELD = (BCM_FIRST + 0x000C); //Elevated button
+        /// <summary>
+        /// Normal button.
+        /// </summary>
+        internal const int BCM_FIRST = 0x1600;
+
+        /// <summary>
+        /// Elevated button.
+        /// </summary>
+        internal const int BCM_SETSHIELD = (BCM_FIRST + 0x000C);
+
+        /// <summary>
+        /// The ok.
+        /// </summary>
         internal const int S_OK = 0;
 
         /// <summary>
@@ -160,6 +185,9 @@ namespace Ghostbuster
         /// </summary>
         internal ToolTip UACToolTip = new ToolTip();
 
+        /// <summary>
+        /// The buster.
+        /// </summary>
         private Buster buster;
 
         #endregion Fields
@@ -183,7 +211,7 @@ namespace Ghostbuster
         #region Enumerations
 
         /// <summary>
-        /// SystemRestore EventType
+        /// SystemRestore EventType.
         /// </summary>
         public enum EventType
         {
@@ -208,18 +236,36 @@ namespace Ghostbuster
             EndNestedSystemChange = 103
         }
 
+        /// <summary>
+        /// Values that represent LVC.
+        /// </summary>
         public enum LVC
         {
+            /// <summary>
+            /// An enum constant representing the device col option.
+            /// </summary>
             DeviceCol = 0,
+            /// <summary>
+            /// An enum constant representing the manu col option.
+            /// </summary>
             ManuCol,
+            /// <summary>
+            /// An enum constant representing the status col option.
+            /// </summary>
             StatusCol,
+            /// <summary>
+            /// An enum constant representing the match type col option.
+            /// </summary>
             MatchTypeCol,
+            /// <summary>
+            /// An enum constant representing the description col option.
+            /// </summary>
             DescriptionCol
         }
 
         /// <summary>
         /// Type of restorations.
-        /// </summary> 
+        /// </summary>
         public enum RestoreType
         {
             /// <summary>
@@ -272,13 +318,28 @@ namespace Ghostbuster
 
         #region Methods
 
+        /// <summary>
+        /// Sends a message.
+        /// </summary>
+        ///
+        /// <param name="hWnd">   The window. </param>
+        /// <param name="msg">    The message. </param>
+        /// <param name="wParam"> The parameter. </param>
+        /// <param name="lParam"> The parameter. </param>
+        ///
+        /// <returns>
+        /// An UInt32.
+        /// </returns>
         [DllImport("user32")]
         public static extern UInt32 SendMessage(IntPtr hWnd, UInt32 msg, UInt32 wParam, UInt32 lParam);
 
         /// <summary>
         /// Verifies that the OS can do system restores.
         /// </summary>
-        /// <returns>True if OS is either ME,XP,Vista,7</returns>
+        ///
+        /// <returns>
+        /// True if OS is either ME,XP,Vista,7.
+        /// </returns>
         public static bool SysRestoreAvailable()
         {
             int majorVersion = Environment.OSVersion.Version.Major;
@@ -323,12 +384,16 @@ namespace Ghostbuster
         }
 
         /// <summary>
-        /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa378847(v=vs.85).aspx
+        /// http://msdn.microsoft.com/en-us/library/windows/desktop/aa378847(v=vs.85).aspx.
         /// </summary>
-        /// <param name="description"></param>
-        /// <param name="rt">RestoreType</param>
-        /// <param name="et">EventType</param>
-        /// <returns></returns>
+        ///
+        /// <param name="description"> . </param>
+        /// <param name="rt">          RestoreType. </param>
+        /// <param name="et">          EventType. </param>
+        ///
+        /// <returns>
+        /// A ManagementBaseObject.
+        /// </returns>
         public static ManagementBaseObject WmiRestorePoint(String description, RestoreType rt = RestoreType.Checkpoint, EventType et = EventType.BeginSystemChange)
         {
             ManagementScope scope = new ManagementScope(@"\\.\root\DEFAULT");
@@ -352,6 +417,11 @@ namespace Ghostbuster
             return outParams;
         }
 
+        /// <summary>
+        /// Re color devices.
+        /// </summary>
+        ///
+        /// <param name="updatemax"> true to updatemax. </param>
         public void ReColorDevices(Boolean updatemax)
         {
             Int32 cnt = 0;
@@ -442,12 +512,31 @@ namespace Ghostbuster
             toolStripStatusLabel4.Text = String.Format("{0} to be removed", remove);
         }
 
+        /// <summary>
+        /// Adds a shield to button.
+        /// </summary>
+        ///
+        /// <param name="b"> The b control. </param>
         internal static void AddShieldToButton(Button b)
         {
             b.FlatStyle = FlatStyle.System;
             SendMessage(b.Handle, BCM_SETSHIELD, 0, 0xFFFFFFFF);
         }
 
+        /// <summary>
+        /// Searches for the first path.
+        /// </summary>
+        ///
+        /// <param name="lpPath">        Full pathname of the file. </param>
+        /// <param name="lpFileName">    Filename of the file. </param>
+        /// <param name="lpExtension">   The extension. </param>
+        /// <param name="nBufferLength"> Length of the buffer. </param>
+        /// <param name="lpBuffer">      The buffer. </param>
+        /// <param name="lpFilePart">    The file part. </param>
+        ///
+        /// <returns>
+        /// The found path.
+        /// </returns>
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
         internal static extern uint SearchPath(string lpPath,
             string lpFileName,
@@ -456,6 +545,12 @@ namespace Ghostbuster
             [MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpBuffer,
             string lpFilePart);
 
+        /// <summary>
+        /// Event handler. Called by aboutToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
             new AboutDialog().ShowDialog();
@@ -464,8 +559,9 @@ namespace Ghostbuster
         /// <summary>
         /// Add a DeviceClass to the Ghost Removal List.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void AddClassMnu_Click(object sender, EventArgs e)
         {
             for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
@@ -479,8 +575,9 @@ namespace Ghostbuster
         /// <summary>
         /// Add a Device to the Ghost Removal List.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void AddDeviceMnu_Click(object sender, EventArgs e)
         {
             for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
@@ -491,6 +588,12 @@ namespace Ghostbuster
             ReColorDevices(true);
         }
 
+        /// <summary>
+        /// Event handler. Called by AddWildCardMnu for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void AddWildCardMnu_Click(object sender, EventArgs e)
         {
             String Device = String.Empty;
@@ -514,6 +617,12 @@ namespace Ghostbuster
             }
         }
 
+        /// <summary>
+        /// Event handler. Called by chkSysRestore for checked changed events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void chkSysRestore_CheckedChanged(object sender, EventArgs e)
         {
             using (IniFile ini = new IniFile(Buster.IniFileName))
@@ -526,6 +635,12 @@ namespace Ghostbuster
             }
         }
 
+        /// <summary>
+        /// Event handler. Called by contextMenuStrip1 for opening events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Cancel event information. </param>
         private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
         {
             if (listView1.SelectedItems.Count != 0)
@@ -565,6 +680,16 @@ namespace Ghostbuster
                     }
                 }
 
+                HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
+
+                deviceToolStripMenuItem.Enabled =
+                    he.Properties.ContainsKey(SPDRP.DRIVER.ToString()) &&
+                    !string.IsNullOrEmpty(he.Properties[SPDRP.DRIVER.ToString()]);
+
+                serviceToolStripMenuItem.Enabled =
+                    he.Properties.ContainsKey(SPDRP.SERVICE.ToString()) &&
+                    !string.IsNullOrEmpty(he.Properties[SPDRP.SERVICE.ToString()]);
+
                 removeToolStripMenuItem.DropDownItems.Clear();
 
                 foreach (Wildcard wildcard in Buster.Wildcards)
@@ -579,7 +704,9 @@ namespace Ghostbuster
         /// <summary>
         /// Enumerate all devices and optionally uninstall ghosted ones.
         /// </summary>
-        /// <param name="RemoveGhosts">true if ghosted devices should be uninstalled</param>
+        ///
+        /// <param name="RemoveGhosts">   true if ghosted devices should be uninstalled. </param>
+        /// <param name="HideUnfiltered"> true to hide, false to show the unfiltered. </param>
         private void Enumerate(Boolean RemoveGhosts, Boolean HideUnfiltered = false)
         {
             using (new WaitCursor())
@@ -624,6 +751,8 @@ namespace Ghostbuster
                             {
                                 lvi.SubItems[(int)LVC.ManuCol].Text = he.Properties[SPDRP.MFG.ToString()];
                             }
+
+
 
                             foreach (ListViewGroup lvg in listView1.Groups)
                             {
@@ -679,7 +808,6 @@ namespace Ghostbuster
                             Application.DoEvents();
                         }
                     }
-
                 }
                 finally
                 {
@@ -730,6 +858,12 @@ namespace Ghostbuster
             }
         }
 
+        /// <summary>
+        /// Event handler. Called by exitToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void exitToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Application.Exit();
@@ -738,8 +872,9 @@ namespace Ghostbuster
         /// <summary>
         /// Enumerate All Devices and Set the UAC shield on the button.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void Form1_Load(object sender, EventArgs e)
         {
             WindowsPrincipal pricipal = new WindowsPrincipal(WindowsIdentity.GetCurrent());
@@ -749,6 +884,9 @@ namespace Ghostbuster
 
             using (IniFile ini = new IniFile(Buster.IniFileName))
             {
+                //#error When Merged the InFile.AppIni is wrong (Encrypt.dll)
+                //MessageBox.Show(ini.FileName);
+
                 chkSysRestore.Checked = ini.ReadBool("Setup", "CreateCheckPoint", chkSysRestore.Checked);
             }
 
@@ -764,6 +902,8 @@ namespace Ghostbuster
             if (!Buster.IsAdmin())
             {
                 AddShieldToButton(RemoveBtn);
+
+                AddShieldToMenuItem(serialPortReservationsToolStripMenuItem);
 
                 this.UACToolTip.ToolTipTitle = "UAC";
                 this.UACToolTip.SetToolTip(RemoveBtn,
@@ -782,24 +922,43 @@ namespace Ghostbuster
             "2) Removed devices or classes of the removal list.");
         }
 
+        /// <summary>
+        /// Event handler. Called by hideUnfilteredDevicesToolStripMenuItem for checked changed
+        /// events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void hideUnfilteredDevicesToolStripMenuItem_CheckedChanged(object sender, EventArgs e)
         {
             Enumerate(false, ((ToolStripMenuItem)(sender)).CheckState == CheckState.Checked);
         }
 
+        /// <summary>
+        /// Event handler. Called by HwEntries for collection changed events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Notify collection changed event information. </param>
         void HwEntries_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             toolStripStatusLabel1.Text = String.Format("{0} Device(s)", Buster.HwEntries.Count);
             statusStrip1.Update();
         }
 
+        /// <summary>
+        /// Event handler. Called by propertiesToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void propertiesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (listView1.SelectedItems != null &&
                 listView1.SelectedItems.Count == 1 &&
                listView1.SelectedItems[0].Tag != null)
             {
-                Debug.WriteLine("[Properties]");
+                // Debug.WriteLine("[Properties]");
                 HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
 
                 PropertyForm pf = new PropertyForm();
@@ -813,6 +972,7 @@ namespace Ghostbuster
                     {
                         pf.textBox1.Text += String.Format("{0,32} =  {1}\r\n", descr, kvp.Value);
                     }
+                    pf.textBox1.Select(0, 0);
                 }
 
                 pf.ShowDialog();
@@ -822,8 +982,9 @@ namespace Ghostbuster
         /// <summary>
         /// Enumerate Devices.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void RefreshBtn_Click(object sender, EventArgs e)
         {
             Enumerate(false);
@@ -832,8 +993,9 @@ namespace Ghostbuster
         /// <summary>
         /// Enumerate Devices and Delete Ghosts that are marked.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void RemoveBtn_Click(object sender, EventArgs e)
         {
             if (Buster.IsAdmin())
@@ -888,8 +1050,9 @@ namespace Ghostbuster
         /// <summary>
         /// Remove a DeviceClass from the Ghost Removal List.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void RemoveClassMnu_Click(object sender, EventArgs e)
         {
             for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
@@ -903,8 +1066,9 @@ namespace Ghostbuster
         /// <summary>
         /// Remove a Device from the Ghost Removal List.
         /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      . </param>
         private void RemoveDeviceMnu_Click(object sender, EventArgs e)
         {
             for (Int32 i = 0; i < listView1.SelectedItems.Count; i++)
@@ -915,6 +1079,12 @@ namespace Ghostbuster
             ReColorDevices(true);
         }
 
+        /// <summary>
+        /// Event handler. Called by RemoveWildcardToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void RemoveWildcardToolStripMenuItem_Click(object sender, EventArgs e)
         {
             String pattern = (String)((ToolStripMenuItem)sender).Tag;
@@ -924,6 +1094,11 @@ namespace Ghostbuster
             ReColorDevices(false);
         }
 
+        /// <summary>
+        /// Restart elevated.
+        /// </summary>
+        ///
+        /// <param name="fileName"> Filename of the file. </param>
         private void RestartElevated(String fileName)
         {
             ProcessStartInfo processInfo = new ProcessStartInfo();
@@ -943,16 +1118,200 @@ namespace Ghostbuster
             }
         }
 
+        /// <summary>
+        /// Event handler. Called by checkForUpdatesToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void checkForUpdatesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ClickOnceUpdater.InstallUpdateSyncWithInfo("http://ghostbuster.codeplex.com/releases/view/latest");
         }
 
+        /// <summary>
+        /// Event handler. Called by visitWebsiteToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
         private void visitWebsiteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ClickOnceUpdater.VisitWebsite("http://ghostbuster.codeplex.com/");
         }
 
+        /// <summary>
+        /// Event handler. Called by deviceToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
+        private void deviceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems != null &&
+               listView1.SelectedItems.Count == 1 &&
+              listView1.SelectedItems[0].Tag != null)
+            {
+                HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
+
+                String key = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\" + he.Properties[SPDRP.DRIVER.ToString()];
+
+                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Regedit", true);
+
+                rKey.SetValue("LastKey", key);
+
+                Process.Start("regedit.exe");
+            }
+        }
+
+        /// <summary>
+        /// Event handler. Called by serviceToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
+        private void serviceToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (listView1.SelectedItems != null &&
+               listView1.SelectedItems.Count == 1 &&
+              listView1.SelectedItems[0].Tag != null)
+            {
+                HwEntry he = (HwEntry)listView1.SelectedItems[0].Tag;
+
+                String key = @"HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\" + he.Properties[SPDRP.SERVICE.ToString()];
+
+                RegistryKey rKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Applets\Regedit", true);
+
+                rKey.SetValue("LastKey", key);
+                ProcessStartInfo psi = new ProcessStartInfo("regedit.exe");
+                psi.UseShellExecute = true;
+                Process.Start(psi);
+            }
+        }
+
+        /// <summary>
+        /// Event handler. Called by serialPortReservationsToolStripMenuItem for click events.
+        /// </summary>
+        ///
+        /// <param name="sender"> . </param>
+        /// <param name="e">      Event information. </param>
+        private void serialPortReservationsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (Buster.IsAdmin())
+            {
+                new SerialPortReservations().Execute();
+            }
+            else
+            {
+                //Must run with limited privileges in order to see the UAC window
+                RestartElevated(Application.ExecutablePath);
+            }
+        }
+
+        /// <summary>
+        /// Sets UAC shield.
+        /// 
+        /// See http://www.peschuster.de/2011/12/how-to-add-an-uac-shield-icon-to-a-menuitem/.
+        /// </summary>
+        ///
+        /// <param name="menuItem"> The menu item. </param>
+        private void AddShieldToMenuItem(ToolStripMenuItem menuItem)
+        {
+            NativeMethods.SHSTOCKICONINFO iconResult = new NativeMethods.SHSTOCKICONINFO();
+
+            iconResult.cbSize = (uint)System.Runtime.InteropServices.Marshal.SizeOf(iconResult);
+
+            NativeMethods.SHGetStockIconInfo(
+                                NativeMethods.SHSTOCKICONID.SIID_SHIELD,
+                                                NativeMethods.SHGSI.SHGSI_ICON | NativeMethods.SHGSI.SHGSI_SMALLICON,
+                                                                ref iconResult);
+
+            menuItem.DisplayStyle = ToolStripItemDisplayStyle.ImageAndText;
+            menuItem.Image = Bitmap.FromHicon(iconResult.hIcon);
+        }
+
         #endregion Methods
+
+        /// <summary>
+        /// A native methods.
+        /// 
+        /// See http://www.peschuster.de/2011/12/how-to-add-an-uac-shield-icon-to-a-menuitem/.
+        /// </summary>
+        private static class NativeMethods
+        {
+            /// <summary>
+            /// Sh get stock icon information.
+            /// </summary>
+            ///
+            /// <param name="siid">   The siid. </param>
+            /// <param name="uFlags"> The flags. </param>
+            /// <param name="psii">   The psii. </param>
+            ///
+            /// <returns>
+            /// An Int32.
+            /// </returns>
+            [DllImport("Shell32.dll", SetLastError = false)]
+            public static extern Int32 SHGetStockIconInfo(SHSTOCKICONID siid, SHGSI uFlags, ref SHSTOCKICONINFO psii);
+
+            /// <summary>
+            /// Values that represent SHSTOCKICONID.
+            /// </summary>
+            public enum SHSTOCKICONID : uint
+            {
+                /// <summary>
+                /// An enum constant representing the siid shield option.
+                /// </summary>
+                SIID_SHIELD = 77
+            }
+
+            /// <summary>
+            /// Bitfield of flags for specifying SHGSI.
+            /// </summary>
+            [Flags]
+            public enum SHGSI : uint
+            {
+                /// <summary>
+                /// A binary constant representing the shgsi icon flag.
+                /// </summary>
+                SHGSI_ICON = 0x000000100,
+                /// <summary>
+                /// A binary constant representing the shgsi smallicon flag.
+                /// </summary>
+                SHGSI_SMALLICON = 0x000000001
+            }
+
+            /// <summary>
+            /// A shstockiconinfo.
+            /// </summary>
+            [StructLayoutAttribute(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+            public struct SHSTOCKICONINFO
+            {
+                /// <summary>
+                /// The size.
+                /// </summary>
+                public UInt32 cbSize;
+
+                /// <summary>
+                /// The icon.
+                /// </summary>
+                public IntPtr hIcon;
+
+                /// <summary>
+                /// Zero-based index of the system icon index.
+                /// </summary>
+                public Int32 iSysIconIndex;
+
+                /// <summary>
+                /// Zero-based index of the icon.
+                /// </summary>
+                public Int32 iIcon;
+
+                /// <summary>
+                /// Full pathname of the file.
+                /// </summary>
+                [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+                public string szPath;
+            }
+        }
     }
 }

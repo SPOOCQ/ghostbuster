@@ -39,6 +39,7 @@ namespace GhostBuster
     using System.Windows.Forms;
     using Microsoft.Win32;
     using System.ComponentModel;
+    using Ghostbuster;
 
     public class SetupDi
     {
@@ -56,8 +57,6 @@ namespace GhostBuster
         internal const String SetupApiModuleName = "SetupApi.dll";
         internal const String AdvApi32ModuleName = "advapi32.dll";
         internal const String Kernel32ModuleName = "kernel32.dll";
-
-        internal const UInt32 SPDRP_DEVICEDESC = 0x00000000;
 
         internal enum SPDIT
         {
@@ -203,6 +202,10 @@ namespace GhostBuster
         internal static extern bool SetupDiGetDeviceRegistryProperty(IntPtr deviceInfoSet, ref SP_DEVINFO_DATA deviceInfoData,
             uint property, out UInt32 propertyRegDataType, StringBuilder propertyBuffer, uint propertyBufferSize, out UInt32 requiredSize);
 
+        [DllImport(SetupApiModuleName, CharSet = CharSet.Auto, SetLastError = true)]
+        internal static extern bool SetupDiGetDeviceRegistryProperty(IntPtr deviceInfoSet, ref SP_DEVINFO_DATA deviceInfoData,
+            uint property, out UInt32 propertyRegDataType, IntPtr propertyBuffer, uint propertyBufferSize, out UInt32 requiredSize);
+
         [DllImport(SetupApiModuleName, SetLastError = true)]
         internal static extern IntPtr SetupDiGetClassDevs(ref Guid gClass, UInt32 iEnumerator, IntPtr hParent, UInt32 nFlags);
 
@@ -319,7 +322,7 @@ namespace GhostBuster
         }
 
         /// <summary>
-        /// Retrieve the devices decription.
+        /// Retrieve the devices description.
         /// </summary>
         /// <param name="deviceinfo"></param>
         /// <param name="hdeviceinfoset"></param>
@@ -331,7 +334,7 @@ namespace GhostBuster
             uint propRegDataType;
             uint length = (uint)descriptionBuf.Capacity;
 
-            if (SetupDiGetDeviceRegistryProperty(hdeviceinfoset, ref deviceinfodata, SPDRP_DEVICEDESC,
+            if (SetupDiGetDeviceRegistryProperty(hdeviceinfoset, ref deviceinfodata, (int)SPDRP.DEVICEDESC,
                 out propRegDataType, descriptionBuf, length, out length))
             {
                 deviceinfo.description = descriptionBuf.ToString();
@@ -341,6 +344,31 @@ namespace GhostBuster
             {
                 deviceinfo.description = deviceinfodata.ClassGuid.ToString();
                 return false;
+            }
+        }
+
+        /// <summary>
+        /// Retrieve the devices description.
+        /// </summary>
+        /// <param name="deviceinfo"></param>
+        /// <param name="hdeviceinfoset"></param>
+        /// <param name="deviceinfodata"></param>
+        /// <returns></returns>
+        internal static String GetDeviceRegistryKey(ref DeviceInfo deviceinfo, IntPtr hdeviceinfoset, SP_DEVINFO_DATA deviceinfodata)
+        {
+            StringBuilder descriptionBuf = new StringBuilder(256);
+            uint propRegDataType;
+            uint length = (uint)descriptionBuf.Capacity;
+
+            if (SetupDiGetDeviceRegistryProperty(hdeviceinfoset, ref deviceinfodata, (int)SPDRP.DRIVER,
+                out propRegDataType, descriptionBuf, length, out length))
+            {
+                // HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Class\
+                return @"\SYSTEM\CurrentControlSet\Control\Class\" + descriptionBuf.ToString();
+            }
+            else
+            {
+                return String.Empty;
             }
         }
 

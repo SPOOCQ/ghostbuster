@@ -128,6 +128,12 @@
     <Compile Include="PropertyForm.Designer.cs">
       <DependentUpon>PropertyForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SerialPortReservations.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SerialPortReservations.Designer.cs">
+      <DependentUpon>SerialPortReservations.cs</DependentUpon>
+    </Compile>
     <Compile Include="SetupDi.cs" />
     <Compile Include="Mainform.cs">
       <SubType>Form</SubType>
@@ -157,6 +163,9 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
+    <EmbeddedResource Include="SerialPortReservations.resx">
+      <DependentUpon>SerialPortReservations.cs</DependentUpon>
+    </EmbeddedResource>
     <None Include="app.config" />
     <None Include="Ghostbuster_NewKey.pfx" />
     <None Include="Ghostbuster_TemporaryKey.pfx" />
@@ -218,7 +227,7 @@
   -->
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_BuildAction="ReBuild" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_StartDate="2010/1/8" />
+      <UserProperties BuildVersion_StartDate="2010/1/8" BuildVersion_BuildVersioningStyle="None.None.Increment.None" BuildVersion_BuildAction="ReBuild" />
     </VisualStudio>
   </ProjectExtensions>
   <PropertyGroup>
