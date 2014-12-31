@@ -9,7 +9,7 @@ using System.Resources;
 [assembly: AssemblyTitle("Ghostbuster")]
 [assembly: AssemblyDescription("Removed Ghosted Devices")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("G.W. van der Vegt")]
+[assembly: AssemblyCompany("Swiss")]
 [assembly: AssemblyProduct("Ghostbuster")]
 [assembly: AssemblyCopyright("Copyright © G.W. van der Vegt 2015")]
 [assembly: AssemblyTrademark("")]
