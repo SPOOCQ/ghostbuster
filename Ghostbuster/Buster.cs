@@ -1178,17 +1178,34 @@ namespace Ghostbuster
                 //! the function returns the required size for the buffer in RequiredSize.
 
                 //See http://msdn.microsoft.com/en-us/library/windows/hardware/ff551967(v=vs.85).aspx 
-                SetupDi.SetupDiGetDeviceRegistryProperty(aDeviceInfoSet, ref aDeviceInfoData,
-      (uint)s, out PropertyRegDataType,
-      null, 0, out RequiredSize);
+                SetupDi.SetupDiGetDeviceRegistryProperty(aDeviceInfoSet, ref aDeviceInfoData, (uint)s, out PropertyRegDataType, null, 0, out RequiredSize);
 
                 uint nBytes = RequiredSize;
-                sb.Length = (int)nBytes;
-                //RequiredSize = 0;
+                if (new SPDRP[] { SPDRP.BUSTYPEGUID, SPDRP.BASE_CONTAINERID, SPDRP.CLASSGUID }.Contains(s) && nBytes == 16)
+                {
+                    Byte[] buf = new Byte[16];
 
-                SetupDi.SetupDiGetDeviceRegistryProperty(aDeviceInfoSet, ref aDeviceInfoData,
-                      (uint)s, out PropertyRegDataType,
-                      sb, nBytes, out RequiredSize);
+                    IntPtr unmanagedPointer = Marshal.AllocHGlobal(buf.Length);
+
+                    SetupDi.SetupDiGetDeviceRegistryProperty(aDeviceInfoSet, ref aDeviceInfoData,
+                         (uint)s, out PropertyRegDataType,
+                         unmanagedPointer, nBytes, out RequiredSize);
+
+                    Marshal.Copy(unmanagedPointer, buf, 0, buf.Length);
+
+                    Marshal.FreeHGlobal(unmanagedPointer);
+
+                    sb.Append("{" + new Guid(buf).ToString() + "}");
+                }
+                else
+                {
+                    sb.Length = (int)nBytes;
+                    //RequiredSize = 0;
+
+                    SetupDi.SetupDiGetDeviceRegistryProperty(aDeviceInfoSet, ref aDeviceInfoData,
+                          (uint)s, out PropertyRegDataType,
+                          sb, nBytes, out RequiredSize);
+                }
 
                 String descr = EnumExtensions.GetDescription<SPDRP>((SPDRP)Enum.Parse(typeof(SPDRP), s.ToString()));
 
@@ -1225,14 +1242,15 @@ namespace Ghostbuster
                                     val = Marshal.PtrToStringAuto(ptrBuffer);
                                 } while (val.Length > 0);
 
-                                Properties.Add(s.ToString(), String.Join("; ", vals.ToArray()));
+                                SafeAddOrAppendProperty(s, String.Join("; ", vals.ToArray()));
+                                //if (!Properties.ContainsKey(s.ToString()))
+                                //{
+                                //    Properties.Add(s.ToString(), String.Join("; ", vals.ToArray()));
+                                //}
                             }
                             else
                             {
-                                if (!String.IsNullOrEmpty(sb.ToString().Trim()))
-                                {
-                                    Properties.Add(s.ToString(), sb.ToString().Trim());
-                                }
+                                SafeAddOrAppendProperty(s, sb);
                             }
                         }
                         break;
@@ -1249,30 +1267,20 @@ namespace Ghostbuster
                     case SPDRP.PHYSICAL_DEVICE_LOCATION:
                     case SPDRP.SERVICE:
                     case SPDRP.UI_NUMBER_DESC_FORMAT:
-                        if (!String.IsNullOrEmpty(sb.ToString().Trim()))
-                        {
-                            Properties.Add(s.ToString(), sb.ToString().Trim());
-                        }
+                        SafeAddOrAppendProperty(s, sb);
                         break;
 
                     //! ? (seem to be empty)
                     case SPDRP.CONFIGURATION:
                     case SPDRP.CONFIGURATIONVECTOR:
-                        if (sb.Length != 0 && !String.IsNullOrEmpty(sb.ToString().Trim()))
-                        {
-                            Properties.Add(s.ToString(), sb.ToString().Trim());
-                        }
+                        SafeAddOrAppendProperty(s, sb);
                         break;
 
                     //! Guid
                     case SPDRP.BASE_CONTAINERID:
                     case SPDRP.BUSTYPEGUID:
                     case SPDRP.CLASSGUID:
-                    case SPDRP.MAXIMUM_PROPERTY:
-                        if (sb.Length != 0 && !String.IsNullOrEmpty(sb.ToString().Trim()))
-                        {
-                            Properties.Add(s.ToString(), sb.ToString().Trim());
-                        }
+                        SafeAddOrAppendProperty(s, sb);
                         break;
 
                     //! Struct?
@@ -1280,14 +1288,14 @@ namespace Ghostbuster
                     // Skip for now: contains CM_POWER_DATA struct?
                     case SPDRP.SECURITY:
                     case SPDRP.SECURITY_SDS:
-                        //Properties.Add(s.ToString(), "structure or binary data");
+                        //SafeAddOrAppendProperty(s, "structure or binary data");
                         break;
 
                     //! Boolean
                     case SPDRP.EXCLUSIVE:
                         if (sb.Length == 1)
                         {
-                            Properties.Add(s.ToString(), sb[0] == 0 ? true.ToString() : false.ToString());
+                            SafeAddOrAppendProperty(s, sb[0] == 0 ? true.ToString() : false.ToString());
                         }
                         break;
 
@@ -1304,17 +1312,17 @@ namespace Ghostbuster
                     case SPDRP.REMOVAL_POLICY_HW_DEFAULT:
                     case SPDRP.REMOVAL_POLICY_OVERRIDE:
                     case SPDRP.UI_NUMBER:
-                        if (sb.Length == 1)
+                        if (sb.Length == 1 && !Properties.ContainsKey(s.ToString()))
                         {
-                            Properties.Add(s.ToString(), ((Int32)sb[0]).ToString("X4"));
+                            SafeAddOrAppendProperty(s, ((Int32)sb[0]).ToString("X4"));
                         }
+                        break;
+                    case SPDRP.MAXIMUM_PROPERTY:
+                        //Should not have a value
                         break;
                     default:
                         Debug.Print("Missing SPDRP: {0}", s);
-                        //if (!String.IsNullOrEmpty(sb.ToString().Trim()))
-                        //{
-                        //    Properties.Add(s.ToString(), sb.ToString());
-                        //}
+                        SafeAddOrAppendProperty(s, sb);
                         break;
                 }
             }
@@ -1325,7 +1333,7 @@ namespace Ghostbuster
             if (Properties.ContainsKey(SPDRP.FRIENDLYNAME.ToString()))
             {
                 String fname = Properties[SPDRP.FRIENDLYNAME.ToString()];
-                if (rg.IsMatch(fname))
+                if (rg.IsMatch(fname) && !Buster.SerialPorts.ContainsKey(fname))
                 {
                     Int32 portnum = Int32.Parse(rg.Match(fname).Groups["Port"].Value);
 
@@ -1333,6 +1341,42 @@ namespace Ghostbuster
 
                     Buster.SerialPorts.Add(fname, portnum);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Adds an or append property with a value.
+        /// </summary>
+        ///
+        /// <param name="spdrp"> The SPDRP to process. </param>
+        /// <param name="value"> The value. </param>
+        private void SafeAddOrAppendProperty(SPDRP spdrp, StringBuilder value)
+        {
+            SafeAddOrAppendProperty(spdrp, value.ToString());
+        }
+
+        /// <summary>
+        /// Adds an or append property with a value.
+        /// </summary>
+        ///
+        /// <param name="spdrp"> The SPDRP to process. </param>
+        /// <param name="spdrp"> The Value. </param>
+        private void SafeAddOrAppendProperty(SPDRP spdrp, String value)
+        {
+            if (!String.IsNullOrEmpty(value.Trim()))
+            {
+                if (Properties.ContainsKey(spdrp.ToString()))
+                {
+                    Properties[spdrp.ToString()] += "; " + value.Trim();
+                }
+                else
+                {
+                    Properties.Add(spdrp.ToString(), value.Trim());
+                }
+            }
+            else
+            {
+                //Properties.Add(spdrp.ToString(), String.Empty);
             }
         }
 
