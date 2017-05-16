@@ -1,4 +1,4 @@
-Short Manual for GhostBuster
+# Short Manual for GhostBuster
 
 Ghostbuster is a program that lets you filter devices/device classes of which you want to remove the ghosted once.
 
@@ -10,7 +10,7 @@ It will in contrast to the device manager GhostBuster will NOT uninstall active 
 
 Ghostbuster's filters are applied by right-clicking the devide list and select one of the 2 menu-items. Depending on the item chosen, parts of the device list will be colored (green not ghosted and red for ghosted devices).
 
-GhostBuster_80445.jpg
+![alt text](http://i.imgur.com/5cOXGAG.png "Logo Title Text 1")
 
 In above screenshot the 'Generic USB Hub' is marked as a device to be removed if ghosted.
 'USB Mass Storage Devices' are marked by using a wildcard ('* Mass Storage Devices'),
