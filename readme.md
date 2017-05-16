@@ -2,7 +2,7 @@
 
 Ghostbuster is a program that lets you filter devices/device classes of which you want to remove the ghosted once.
 
-For the advanced features of the latest beta (commandline and task scheduling) see Advanced Options.
+For the advanced features of the latest beta (commandline and task scheduling) see [Advanced Options](https://github.com/SPOOCQ/ghostbuster/wiki/Advanced-Usage).
 
 Ghostbuster does exactly the same when you right click a device in the Windows Device Manager and choose uninstall. The ony difference is that GhostBuster does it in bulk for all filtered devices that are ghosted and thus saves a lot of time.
 
@@ -10,7 +10,7 @@ It will in contrast to the device manager GhostBuster will NOT uninstall active 
 
 Ghostbuster's filters are applied by right-clicking the devide list and select one of the 2 menu-items. Depending on the item chosen, parts of the device list will be colored (green not ghosted and red for ghosted devices).
 
-![alt text](http://i.imgur.com/5cOXGAG.png "Logo Title Text 1")
+![alt text](http://i.imgur.com/5cOXGAG.png "Screenshot")
 
 In above screenshot the 'Generic USB Hub' is marked as a device to be removed if ghosted.
 'USB Mass Storage Devices' are marked by using a wildcard ('* Mass Storage Devices'),
