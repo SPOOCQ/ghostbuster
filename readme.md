@@ -1,3 +1,6 @@
+## This repository is just a mirror and unmaintained.
+## If you want to fix anything: Feel free to create a pull request - otherwise this is offered -- AS IS --
+
 # Short Manual for GhostBuster
 
 Ghostbuster is a program that lets you filter devices/device classes of which you want to remove the ghosted once.
